@@ -22,6 +22,7 @@ lazy val app = (crossProject(JVMPlatform, JSPlatform) in file("./apps"))
   ).settings(
     libraryDependencies ++= Seq(
       "com.lihaoyi" %%% "ujson" % "3.3.1",
+      "com.lihaoyi" %% "upickle" % "3.3.1"
     )
   ).jsSettings(
     scalaJSUseMainModuleInitializer := true,
