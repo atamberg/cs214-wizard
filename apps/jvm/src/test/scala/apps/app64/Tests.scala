@@ -2,29 +2,27 @@ package apps.app64
 
 import cs214.webapp.*
 import cs214.webapp.utils.WebappSuite
+import cs214.webapp.Action
 import cs214.webapp.server.StateMachine
+
+import Wire.*
 
 class Tests extends WebappSuite[Event, State, View]:
   override val sm: StateMachine[Event, State, View] = Logic()
-
-
-import org.scalatest.funsuite.AnyFunSuite
-import ujson._
-import upickle.default._
-
-class SerializationTest extends AnyFunSuite {
-
-  // Sample UserIds for testing
-  val UID0 = UserId("user0")
-  val UID1 = UserId("user1")
-
   // Example hands for testing
+  val hand0 = Set(Card(Suit.Clubs, 2), Card(Suit.Diamonds, 8))
   val hand1 = Set(Card(Suit.Hearts, 10), Card(Suit.Diamonds, 5))
   val hand2 = Set(Card(Suit.Clubs, 7), Card(Suit.Spades, 2))
+  val stake0 = Stake(3, 0)
+  val stake1 = Stake(3, 4)
+  val stake2 = Stake(5, 6)
+
+  val stakeView1 = Map(USER_IDS(0) -> stake0, USER_IDS(1) -> stake1, USER_IDS(2) -> stake2)
+  val scoreView1 = Map(USER_IDS(0) -> 2, USER_IDS(1) -> 3, USER_IDS(2) -> 1)
 
   test("Different views are not equal (0pt)") {
-    val v1 = View(PhaseView.Waiting(Map(UID0 -> false)), Map(UID0 -> 10))
-    val v2 = View(PhaseView.Waiting(Map(UID0 -> true)), Map(UID0 -> 10))
+    val v1 = View(PhaseView.Waiting(Map(USER_IDS(0) -> false)), Map(UID0 -> 10))
+    val v2 = View(PhaseView.Waiting(Map(USER_IDS(0) -> true)), Map(UID0 -> 10))
     assert(v1 != v2)
   }
 
@@ -40,25 +38,20 @@ class SerializationTest extends AnyFunSuite {
       Event.AnnounceBet(20),
       Event.PlayCard(Card(Suit.Hearts, 5))
     )
-    events.foreach { event =>
-      // Serialize and deserialize the event, then check equality
-      val json = write(event)
-      val parsedEvent = read[Event](json)
-      assert(event == parsedEvent)
-    }
+    import eventFormat.*
+    for event <- events do
+      assertEquals(decode(encode(event)).get, event)
   }
 
   test("View wire") {
     val views = List(
-      View(PhaseView.Waiting(Map(UID0 -> false)), Map(UID0 -> 10)),
-      View(PhaseView.CardSelecting(hand1), Map(UID0 -> 20)),
-      View(PhaseView.CardSelecting(hand2), Map(UID1 -> 15))
+      View(PhaseView.Waiting(Map(USER_IDS(0) -> false)), scoreView1),
+      View(PhaseView.CardSelecting(hand1, stakeView1), scoreView1),
+      View(PhaseView.CardSelecting(hand2, stakeView1), scoreView1)
     )
+    import viewFormat.*
     views.foreach { view =>
-      // Serialize and deserialize the view, then check equality
-      val json = write(view)
-      val parsedView = read[View](json)
-      assert(view == parsedView)
+      assertEquals(decode(encode(view)).get, view)
     }
   }
-}
+
