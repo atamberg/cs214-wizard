@@ -1,18 +1,20 @@
 package apps.app64
 
 import cs214.webapp.UserId
+import upickle.default.*
 
-case class Stake(tricks: Int, bets: Int)
+case class Stake(tricks: Int, bets: Int) derives ReadWriter
 
-enum Suit:
+enum Suit derives ReadWriter:
   case Hearts, Diamonds, Clubs, Spades
 
-case class Card(suit: Suit, value: Int):
+
+case class Card(suit: Suit, value: Int) derives ReadWriter:
   override def toString =
     s"$value of ${suit}"
 
 type Hand = Set[Card]
-type IdMap[T] = Map[UserId, T]
+type IdMap[T] = Map[UserId, T] // TODO: I feel like this Type just introduces obfuscation with very little benefit, at least it feels like that for de-/serialization but maybe I am forgetting about some use case, just lmk ~ leo
 
 case class State(
   players: Vector[UserId],
@@ -28,16 +30,16 @@ case class State(
 enum Phase:
   case Bet, Play, RoundEnd, GameEnd
 
-enum Event:
+enum Event derives ReadWriter:
   case AnnounceBet(bet: Int)
   case PlayCard(card: Card)
 
-case class View(
+case class View (
   phaseView: PhaseView,
-  scoreView: IdMap[Int]
-)
+  scoreView: Map[UserId, Int]
+) derives ReadWriter
 
-enum PhaseView:
-  case CardSelecting(hand: Hand)
+enum PhaseView derives ReadWriter:
+  case CardSelecting(hand: Hand, stakes: Map[UserId, Stake])
   case BetSelecting(bet: Int)
-  case Waiting(ready: IdMap[Boolean])
+  case Waiting(ready: Map[UserId, Boolean])
