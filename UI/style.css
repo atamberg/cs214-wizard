@@ -1,0 +1,47 @@
+body {
+  background-color: #fff6dc;
+  font-family: monospace;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+#main {
+  display: grid;
+  grid-template-columns: 1;
+  grid-template-rows: auto;
+}
+
+#main h2 {
+  grid-row: 1;
+}
+
+#players-grid {
+  grid-row: 2;
+  display: grid;
+  justify-content: center;
+  grid-template-columns: 3;
+  grid-template-rows: 3;
+  gap: 1rem;
+}
+
+#players-grid div {
+  width: 3rem;
+  background-color: #a59f9c;
+  padding: 4rem;
+  border-radius: 7px;
+  text-align: center;
+}
+
+#players-grid .first-row {
+  grid-row: 1;
+}
+
+#players-grid .second-row {
+  grid-row: 2;
+}
+
+#players-grid .third-row {
+  grid-row: 3;
+}
