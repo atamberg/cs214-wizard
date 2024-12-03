@@ -1,47 +1,125 @@
 body {
-  background-color: #fff6dc;
+  background-color: #fffae9;
+}
+
+* {
   font-family: monospace;
+  font-size: 1rem;
 }
 
-h2 {
+h1 {
   font-size: 2rem;
+  padding: 1rem 3rem;
 }
 
-#main {
+
+#title-bar {
   display: grid;
-  grid-template-columns: 1;
-  grid-template-rows: auto;
+  grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 7rem;
+  margin-bottom: 1rem;
 }
 
-#main h2 {
-  grid-row: 1;
+.state-button {
+  margin: 2rem 1rem;
+  padding: .5rem 1rem;
+}
+
+.state {
+  display: none;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr;
+  transition: opacity 200ms;
 }
 
 #players-grid {
-  grid-row: 2;
+  grid-row: 1;
   display: grid;
   justify-content: center;
-  grid-template-columns: 3;
-  grid-template-rows: 3;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
   gap: 1rem;
 }
 
-#players-grid div {
-  width: 3rem;
-  background-color: #a59f9c;
-  padding: 4rem;
+.player, #cards {
+  display: grid;
+  text-align: center;
+  grid-template-columns: 1fr;
+}
+
+.player {
+  grid-template-rows: 3fr 1fr;
+}
+
+.player-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 1rem 3rem;
+  background-color: #50aaff;
   border-radius: 7px;
+  font-size: 2rem;
+}
+
+.player-info {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: .5rem;
+}
+
+#cards {
+  grid-row: 2;
+  grid-column: 2;
+
+  border: 1px black solid;
+  border-radius: 7px;
+  grid-template-rows: 1fr;
   text-align: center;
 }
 
-#players-grid .first-row {
+#cards > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#players-grid > :nth-child(1) {
   grid-row: 1;
+  grid-column: 2;
 }
 
-#players-grid .second-row {
+#players-grid > :nth-child(2) {
   grid-row: 2;
+  grid-column: 1;
 }
 
-#players-grid .third-row {
-  grid-row: 3;
+#players-grid > :nth-child(3) {
+  grid-row: 2;
+  grid-column: 3;
 }
+
+#players-grid > :nth-child(4) {
+  grid-row: 3;
+  grid-column: 2;
+}
+
+#scoreboard > * {
+  margin: 1rem 2rem;
+}
+
+#scoreboard h2 {
+  font-size: 1.5rem;
+  border-bottom: 2px black solid;
+}
+
+#scoreboard > div > div {
+  margin-left: 1rem;
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 3fr 2fr;
+
+}
+
