@@ -4,7 +4,7 @@ import scala.util.Random.{shuffle, between}
 import cs214.webapp.UserId
 import upickle.default.*
 
-case class Stake(tricks: Int, bets: Int) derives ReadWriter
+case class Stake(tricksWon: Int, bid: Int) derives ReadWriter
 
 enum Suit derives ReadWriter:
   case Hearts, Diamonds, Clubs, Spades
@@ -55,10 +55,10 @@ case class State(
 )
 
 enum Phase:
-  case Bet, Play, RoundEnd, GameEnd
+  case Bid, Play, RoundEnd, GameEnd
 
 enum Event derives ReadWriter:
-  case AnnounceBet(bet: Int)
+  case AnnounceBid(bid: Int)
   case PlayCard(card: Card)
 
 case class View (
@@ -68,5 +68,5 @@ case class View (
 
 enum PhaseView derives ReadWriter:
   case CardSelecting(hand: Hand, stakes: Map[UserId, Stake])
-  case BetSelecting(bet: Int)
+  case BidSelecting(bid: Int)
   case Waiting(ready: Map[UserId, Boolean])
