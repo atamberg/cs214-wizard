@@ -12,15 +12,15 @@ object Suit:
   def random = Suit.values(between(0, Suit.values.size))
 
 object Deck:
-  val cards: Set[Card] = shuffle:
+  private def shuffledCards: Set[Card] = shuffle:
     (for 
       suit <- Suit.values
       value <- (2 to 15)
     yield
       Card(suit, value)).toSet
   def dealNCards(n: Int, players: Vector[UserId]): Map[UserId, Hand] =
-    require(cards.size/players.size >= n)
-    var mutCards = cards
+    require(shuffledCards.size/players.size >= n)
+    var mutCards = shuffledCards
     players.map(_ -> mutCards.take(n).toSet).toMap
 
 case class Card(suit: Suit, value: Int) derives ReadWriter:
@@ -32,7 +32,7 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
           c.suit != trump && (
           c.suit != this.suit  || 
           c.value < this.value )
-          ) 
+          )
     || this.suit == trump && others.forall(c => 
           c.suit != this.suit  || 
           c.value < this.value)
