@@ -21,7 +21,7 @@ class Logic extends StateMachine[Event, State, View]:
       clients.map(u => u -> Stake(0, 0)).toMap, 
       clients.map(u => u -> Set()).toMap, 
       clients.map(u => (u, 0)).toMap,
-      Suit.Hearts,
+      Suit.random,
       Suit.Hearts,
       0,
       Phase.Bet
