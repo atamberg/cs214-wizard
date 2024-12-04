@@ -71,3 +71,20 @@ enum PhaseView derives ReadWriter:
   case CardSelecting(hand: Hand, stakes: Map[UserId, Stake])
   case BidSelecting(bid: Int)
   case Waiting(ready: Map[UserId, Boolean])
+
+
+extension [K,V](m: Map[K,V])
+  def updateAtKey(k: K, op: V => V): Map[K,V] =
+    m + (k -> (op(m(k))))
+
+extension [K, T](m: Map[K, Seq[T]])
+  def appendAtKey(k: K, toAppend: T): Map[K, Seq[T]] =
+    m.updateAtKey(k, _ :+ toAppend)
+
+  def prependAtKey(k: K, toPrepend: T): Map[K, Seq[T]] =
+    m.updateAtKey(k, toPrepend +: _)
+
+extension [K, T](m: Map[K, Set[T]])
+  def dropAtKey(k: K, toDrop: T): Map[K, Set[T]] =
+    m.updateAtKey(k, _ - toDrop)
+
