@@ -28,14 +28,18 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
     s"$value of ${suit}"
   def scoreAgainst(others: List[Card], trump: Suit, current: Suit): Int =
     // TODO: This does not implement the functionality needed for jokers/wizards
-    if (this.suit == current || this.suit == trump)
-       && others.forall(c => 
-          c.suit != trump || 
-          this.suit == trump ||
+    if this.suit == current && others.forall(c => 
+          c.suit != trump && (
           c.suit != this.suit  || 
-          c.value < this.value) 
-       then 1
-    else 0
+          c.value < this.value )
+          ) 
+    || this.suit == trump && others.forall(c => 
+          c.suit != this.suit  || 
+          c.value < this.value)
+       then 
+       1
+    else 
+      0
 
 type Hand = Set[Card]
 
