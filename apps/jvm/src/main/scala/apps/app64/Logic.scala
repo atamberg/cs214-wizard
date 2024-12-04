@@ -55,13 +55,14 @@ class Logic extends StateMachine[Event, State, View]:
       case Play =>
         event match
           case PlayCard(card) =>
-            val nextPlayState = state.playCard(userId, card).nextPlayer
-            if state.isHandEmpty(userId) then
-              Seq:
-                Render(nextPlayState.nextPhase(RoundEnd))
-            else
-              Seq:
-                Render(nextPlayState)
+            val nextPlayState = state.playCard(userId, card)
+            Seq(
+              Render(nextPlayState),
+              Pause(500),
+              if state.isHandEmpty(userId) 
+                then Render(nextPlayState.nextPhase(RoundEnd)) // TODO: Implement shifting of the first player to play after each round
+                else Render(nextPlayState.nextPlayer)
+            )
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd => ???
       case GameEnd => ???
