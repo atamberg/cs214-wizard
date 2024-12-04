@@ -13,9 +13,19 @@ class Logic extends StateMachine[Event, State, View]:
     year = 2024
   )
 
-  override def wire = ???
+  override def wire = apps.app64.Wire
 
-  override def init(clients: Seq[UserId]): State = ???
+  override def init(clients: Seq[UserId]): State = 
+    State(
+      clients.toVector, 
+      clients.map(u => u -> Stake(0, 0)).toMap, 
+      clients.map(u => u -> Set()).toMap, 
+      clients.map(u => (u, 0)).toMap,
+      Suit.Hearts,
+      Suit.Hearts,
+      0,
+      Phase.Bet
+      )
 
   override def transition(state: State)(
     userId: UserId,
