@@ -1,6 +1,6 @@
 package apps.app64
 
-import scala.util.Random.between
+import scala.util.Random.{shuffle, between}
 import cs214.webapp.UserId
 import upickle.default.*
 
@@ -10,6 +10,18 @@ enum Suit derives ReadWriter:
   case Hearts, Diamonds, Clubs, Spades
 object Suit:
   def random = Suit.values(between(0, Suit.values.size))
+
+object Deck:
+  val cards: Set[Card] = shuffle:
+    (for 
+      suit <- Suit.values
+      value <- (2 to 15)
+    yield
+      Card(suit, value)).toSet
+  def dealNCards(n: Int, players: Vector[UserId]): Map[UserId, Hand] =
+    require(cards.size/players.size >= n)
+    var mutCards = cards
+    players.map(_ -> mutCards.take(n).toSet).toMap
 
 case class Card(suit: Suit, value: Int) derives ReadWriter:
   override def toString =
