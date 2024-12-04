@@ -53,7 +53,35 @@ case class State(
   currentSuit: Suit,
   round: Int,
   phase: Phase
-)
+):
+  lazy val allReady = players.forall(stakes.keySet.contains)
+  // TODO: Check that allReady get uninitialized after a copy! We don't want the old ready to persist in the next state!
+
+  def placeBid(id: UserId, bid: Int): State =
+    require(phase == Phase.Bid)
+    require(!stakes.keySet.contains(id))
+    copy(stakes = stakes + (id -> Stake(0, bid)))
+
+  def playCard(id: UserId, card: Card): State =
+    require(players.head == id)
+    require(hands(id).contains(card))
+    val newHands = hands.dropAtKey(id, card)
+    val nextCardsPlayed = cardsPlayed :+ (id, card)
+    val prevState = copy(cardsPlayed = nextCardsPlayed, hands = newHands)
+    if cardsPlayed.isEmpty then
+      prevState.copy(currentSuit = card.suit)
+    else
+      prevState
+
+  def nextPhase(phase: Phase): State =
+    copy(phase = phase)
+
+  def nextPlayer: State =
+    copy(players = players.tail :+ players.head)
+
+  def isHandEmpty(id: UserId): Boolean =
+    hands(id).isEmpty
+
 
 enum Phase:
   case Bid, Play, RoundEnd, GameEnd
