@@ -16,16 +16,20 @@ class Logic extends StateMachine[Event, State, View]:
   override def wire = apps.app64.Wire
 
   override def init(clients: Seq[UserId]): State = 
+    import Suit.*
+    import Phase.*
+
     State(
       clients.toVector, 
-      clients.map(u => u -> Stake(0, 0)).toMap, 
-      clients.map(u => u -> Set()).toMap, 
-      clients.map(u => (u, 0)).toMap,
-      Suit.random,
-      Suit.Hearts,
-      0,
-      Phase.Bet
-      )
+      Map(),
+      Vector(),
+      clients.map(_ -> Set()).toMap, 
+      clients.map(_ -> 0).toMap,
+      Spades,
+      None,
+      1,
+      Bid
+    )
 
   override def transition(state: State)(
     userId: UserId,

@@ -7,7 +7,7 @@ import upickle.default.*
 case class Stake(tricksWon: Int, bid: Int) derives ReadWriter
 
 enum Suit derives ReadWriter:
-  case Hearts, Diamonds, Clubs, Spades
+  case Hearts, Diamonds, Clubs, Spades, None
 object Suit:
   def random = Suit.values(between(0, Suit.values.size))
 
@@ -46,6 +46,7 @@ type Hand = Set[Card]
 case class State(
   players: Vector[UserId],
   stakes: Map[UserId, Stake],
+  cardsPlayed:  Vector[(UserId, Card)],
   hands:  Map[UserId, Hand],
   scores: Map[UserId, Int],
   trumpSuit: Suit,
