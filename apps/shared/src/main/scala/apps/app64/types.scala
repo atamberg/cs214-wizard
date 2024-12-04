@@ -14,13 +14,12 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
     s"$value of ${suit}"
 
 type Hand = Set[Card]
-type IdMap[T] = Map[UserId, T] // TODO: I feel like this Type just introduces obfuscation with very little benefit, at least it feels like that for de-/serialization but maybe I am forgetting about some use case, just lmk ~ leo
 
 case class State(
   players: Vector[UserId],
-  stakes: IdMap[Stake],
-  hands:  IdMap[Hand],
-  scores: IdMap[Int],
+  stakes: Map[UserId, Stake],
+  hands:  Map[UserId, Hand],
+  scores: Map[UserId, Int],
   trumpSuit: Suit,
   currentSuit: Suit,
   round: Int,
