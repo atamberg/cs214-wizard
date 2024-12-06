@@ -23,7 +23,7 @@ class GameStateTest extends AnyFlatSpec with Matchers:
 
   // Test Event Serialization
   "Event" should "serialize and deserialize AnnounceBet" in {
-    val betEvent = Event.AnnounceBet(5)
+    val betEvent = Event.AnnounceBid(5)
     val written = write(betEvent)
     val valueRead = read[Event](written)
     valueRead shouldBe betEvent
@@ -43,16 +43,17 @@ class GameStateTest extends AnyFlatSpec with Matchers:
     val initialState = State(
       players = players,
       stakes = players.map(p => (p, Stake(0, 0))).toMap,
+      cardsPlayed = players.map(p => (p, Card(Suit.None, 0))),
       hands = players.map(p => (p, Set.empty[Card])).toMap,
       scores = players.map(p => (p, 0)).toMap,
       trumpSuit = Suit.Hearts,
       currentSuit = Suit.Hearts,
       round = 1,
-      phase = Phase.Bet
+      phase = Phase.Bid
     )
 
     initialState.players.size shouldBe 2
-    initialState.phase shouldBe Phase.Bet
+    initialState.phase shouldBe Phase.Bid
     initialState.round shouldBe 1
   }
 
@@ -81,7 +82,7 @@ class GameStateTest extends AnyFlatSpec with Matchers:
       Map("player1" -> Stake(1, 1))
     )
     
-    val betSelecting = PhaseView.BetSelecting(3)
+    val betSelecting = PhaseView.BidSelecting(3)
     
     val waiting = PhaseView.Waiting(
       Map(
@@ -115,22 +116,22 @@ class GameStateTest extends AnyFlatSpec with Matchers:
   val scoreView1 = Map(USER_IDS(0) -> 2, USER_IDS(1) -> 3, USER_IDS(2) -> 1)
 
 
-  "Different views" should "not be equal (0pt)" in {
+  "Different views" should "not be equal" in {
     val v1 = View(PhaseView.Waiting(Map(USER_IDS(0) -> false)), Map(UID0 -> 10))
     val v2 = View(PhaseView.Waiting(Map(USER_IDS(0) -> true)), Map(UID0 -> 10))
     v1 should not be v2
   }
 
   "Different events" should "not be equal" in {
-    val e1 = Event.AnnounceBet(10)
-    val e2 = Event.AnnounceBet(20)
+    val e1 = Event.AnnounceBid(10)
+    val e2 = Event.AnnounceBid(20)
     e1 should not be e2
   }
 
   "Event wire" should "work correctly" in {
     val events = List(
-      Event.AnnounceBet(10),
-      Event.AnnounceBet(20),
+      Event.AnnounceBid(10),
+      Event.AnnounceBid(20),
       Event.PlayCard(Card(Suit.Hearts, 5))
     )
     import apps.app64.Wire.eventFormat._
