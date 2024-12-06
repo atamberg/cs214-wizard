@@ -64,7 +64,6 @@ class Logic extends StateMachine[Event, State, View]:
                 else Render(nextPlayState.nextPlayer)
             )
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
-      case RoundEnd => ???
-      case GameEnd => ???
+      case RoundEnd | GameEnd => throw IllegalMoveException("You can only make a move during a round!")
 
   override def project(state: State)(userId: UserId): View = ???
