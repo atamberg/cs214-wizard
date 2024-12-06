@@ -4,7 +4,10 @@ import scala.util.Random.{shuffle, between}
 import cs214.webapp.UserId
 import upickle.default.*
 
-case class Stake(tricksWon: Int, bid: Int) derives ReadWriter
+case class Stake(tricksWon: Int, bid: Int) derives ReadWriter:
+  // TODO: Check values against ruleset, am too lazy to look them up
+  lazy val score = if tricksWon == bid then 
+      bid * 10 + 10 else math.abs(tricksWon - bid) * (-10)
 
 enum Suit derives ReadWriter:
   case Hearts, Diamonds, Clubs, Spades, None
@@ -93,11 +96,17 @@ case class State(
       )
       // TODO: else implement the functionality for special cards
       ).toMap
+  private def tallyUpScores(): Map[UserId, Int] = // NOTE: Yet another banger
+    for
+      (player, stake) <- stakes
+    yield
+      player -> (scores(player) + stake.score)
 
   def nextRound: State =
     copy(
       players = players.tail :+ players.head,
-      stakes = tallyUpTricks(),
+      stakes = Map(),
+      scores = tallyUpScores(),
       cardsPlayed = Vector(),
       hands = hands.map((u, h) => (u, h.empty)), 
       currentSuit = Suit.None,
