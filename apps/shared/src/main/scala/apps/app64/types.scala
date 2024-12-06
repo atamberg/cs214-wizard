@@ -26,7 +26,7 @@ object Deck:
 case class Card(suit: Suit, value: Int) derives ReadWriter:
   override def toString =
     s"$value of ${suit}"
-  def scoreAgainst(others: List[Card], trump: Suit, current: Suit): Int =
+  def scoreAgainst(others: Vector[Card], trump: Suit, current: Suit): Int =
     // TODO: This does not implement the functionality needed for jokers/wizards
     if this.suit == current && others.forall(c => 
           c.suit != trump && (
@@ -78,6 +78,33 @@ case class State(
 
   def nextPlayer: State =
     copy(players = players.tail :+ players.head)
+
+  private def tallyUpTricks(): Map[UserId, Stake]  = // NOTE: Best function name dont @ me
+    require(phase == Phase.GameEnd)
+    (for
+      (player, card) <- cardsPlayed
+      otherCards = cardsPlayed.dropWhile(_ != (player, card)).map(_._2)
+    yield
+      // TODO: if !card.isSpecialCardOrSomethingInOrderToDoWizard/JokerChecking then
+      player -> (
+        stakes(player).copy(
+          (stakes(player).tricksWon + card.scoreAgainst(otherCards, trumpSuit, currentSuit))
+          ,stakes(player).bid)
+      )
+      // TODO: else implement the functionality for special cards
+      ).toMap
+
+  def nextRound: State =
+    copy(
+      players = players.tail :+ players.head,
+      stakes = tallyUpTricks(),
+      cardsPlayed = Vector(),
+      hands = hands.map((u, h) => (u, h.empty)), 
+      currentSuit = Suit.None,
+      trumpSuit = Suit.random,
+      round = round + 1,
+      phase = Phase.Bid
+      )
 
   def isHandEmpty(id: UserId): Boolean =
     hands(id).isEmpty
