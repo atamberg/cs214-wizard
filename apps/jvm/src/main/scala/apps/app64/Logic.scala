@@ -65,22 +65,62 @@ class Logic extends StateMachine[Event, State, View]:
             )
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd => throw IllegalMoveException("You can only make a move during a round!")
+      case PlayEnd => ???
 
   override def project(state: State)(userId: UserId): View =
     import Phase.*
+    import PhaseView.*
 
     state.phase match
       case Bid =>
-        View(
-          phaseView = PhaseView.BidSelecting(state.stakes),
-          scoreView = state.scores,
-          players = state.players
-        )
+        // current player gets selecting view
+        if state.players.head == userId then
+          View(
+            phaseView = BidSelecting(state.stakes),
+            scoreView = state.scores,
+            stateView = StateView(
+              players = state.players,
+              trumpSuit = state.trumpSuit,
+              currentSuit = state.currentSuit
+            )
+          )
+        // others must wait
+        else
+          View(
+            phaseView = Waiting(state.players.map(p => (p, state.stakes.keySet(p))).toMap),
+            scoreView = state.scores,
+            stateView = StateView(
+              players = state.players,
+              trumpSuit = state.trumpSuit,
+              currentSuit = state.currentSuit
+            )
+          )
+
       case Play =>
-        View(
-          phaseView = PhaseView.CardSelecting(state.hands(userId), state.stakes),
-          scoreView = state.scores,
-          players = state.players
-        )
+        // current player gets selecting view
+        if state.players.head == userId then
+          View(
+            phaseView = CardSelecting(state.hands(userId), state.stakes),
+            scoreView = state.scores,
+            stateView = StateView(
+              players = state.players,
+              trumpSuit = state.trumpSuit,
+              currentSuit = state.currentSuit
+            )
+          )
+        // others must wait
+        else
+          View(
+            // TODO: this is temporary, need to find out how to check whether a player has played
+            phaseView = Waiting(state.players.map(p => (p, false)).toMap),
+            scoreView = state.scores,
+            stateView = StateView(
+              players = state.players,
+              trumpSuit = state.trumpSuit,
+              currentSuit = state.currentSuit
+            )
+          )
+
       case RoundEnd => ???
-      case GameEnd => ???
+      case GameEnd  => ???
+      case PlayEnd  => ???
