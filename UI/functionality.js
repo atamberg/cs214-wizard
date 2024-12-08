@@ -1,4 +1,4 @@
-var state = "bidding";
+var state = "end-game";
 
 window.addEventListener("load", () => {
   document.querySelector("#" + state).style.display = "grid";
