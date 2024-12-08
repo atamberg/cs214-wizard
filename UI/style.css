@@ -61,12 +61,18 @@ h1 {
   grid-template-rows: 2fr 2fr 1fr;
 }
 
-#numBets {
-  padding: .7rem .4rem;
+#num-bids {
+  padding: .3rem;
   background-color: #ffffff;
   border-radius: 7px;
   border: 1px solid black;
-  width: 85%;
+}
+
+#submit-bids {
+  padding: .3rem; 
+
+  border: 1px solid black;
+  border-radius: 7px;
 }
 
 #player-cards {
