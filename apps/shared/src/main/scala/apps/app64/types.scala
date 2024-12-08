@@ -133,7 +133,7 @@ case class View (
 
 enum PhaseView derives ReadWriter:
   case CardSelecting(hand: Hand, stakes: Map[UserId, Stake])
-  case BidSelecting(bid: Int)
+  case BidSelecting(stakes: Map[UserId, Stake])
   case Waiting(ready: Map[UserId, Boolean])
 
 

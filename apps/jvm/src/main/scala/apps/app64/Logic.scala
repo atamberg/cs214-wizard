@@ -66,4 +66,19 @@ class Logic extends StateMachine[Event, State, View]:
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd => throw IllegalMoveException("You can only make a move during a round!")
 
-  override def project(state: State)(userId: UserId): View = ???
+  override def project(state: State)(userId: UserId): View =
+    import Phase.*
+
+    state.phase match
+      case Bid =>
+        View(
+          phaseView = PhaseView.BidSelecting(state.stakes),
+          scoreView = state.scores
+        )
+      case Play =>
+        View(
+          phaseView = PhaseView.CardSelecting(state.hands(userId), state.stakes),
+          scoreView = state.scores
+        )
+      case RoundEnd => ???
+      case GameEnd => ???
