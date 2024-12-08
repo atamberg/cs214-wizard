@@ -82,7 +82,15 @@ case class State(
   def nextPlayer: State =
     copy(players = players.tail :+ players.head)
 
-  private def tallyUpTricks(): Map[UserId, Stake]  = // NOTE: Best function name dont @ me
+  private def withPlayerNext(user: UserId): State =
+    // TODO: I think using mutability is usefull here, needs proper testing obviously
+    require(players.contains(user))
+    var playerQueue = players
+    while playerQueue.head != user do
+      playerQueue = playerQueue.tail :+ playerQueue.head
+    copy(players = playerQueue)
+
+  private def updateStakes(): Map[UserId, Stake]  = 
     require(phase == Phase.GameEnd)
     (for
       (player, card) <- cardsPlayed
@@ -96,7 +104,18 @@ case class State(
       )
       // TODO: else implement the functionality for special cards
       ).toMap
-  private def tallyUpScores(): Map[UserId, Int] = // NOTE: Yet another banger
+
+  def nextPlay: State = 
+    val nextStakes = updateStakes()
+    val winner: UserId = nextStakes.filter((u, s) => (s.score - stakes(u).score) > 0).head._1
+    withPlayerNext(winner).copy(
+      stakes = nextStakes,
+      cardsPlayed = Vector(),
+      currentSuit = Suit.None,
+      phase = Phase.Play
+      )
+
+  private def updateScores(): Map[UserId, Int] = 
     for
       (player, stake) <- stakes
     yield
@@ -106,7 +125,7 @@ case class State(
     copy(
       players = players.tail :+ players.head,
       stakes = Map(),
-      scores = tallyUpScores(),
+      scores = updateScores(),
       cardsPlayed = Vector(),
       hands = hands.map((u, h) => (u, h.empty)), 
       currentSuit = Suit.None,
@@ -120,7 +139,7 @@ case class State(
 
 
 enum Phase:
-  case Bid, Play, RoundEnd, GameEnd
+  case Bid, Play, PlayEnd, RoundEnd, GameEnd
 
 enum Event derives ReadWriter:
   case AnnounceBid(bid: Int)
