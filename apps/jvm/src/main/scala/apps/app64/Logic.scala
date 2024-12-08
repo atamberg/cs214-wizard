@@ -73,12 +73,14 @@ class Logic extends StateMachine[Event, State, View]:
       case Bid =>
         View(
           phaseView = PhaseView.BidSelecting(state.stakes),
-          scoreView = state.scores
+          scoreView = state.scores,
+          players = state.players
         )
       case Play =>
         View(
           phaseView = PhaseView.CardSelecting(state.hands(userId), state.stakes),
-          scoreView = state.scores
+          scoreView = state.scores,
+          players = state.players
         )
       case RoundEnd => ???
       case GameEnd => ???
