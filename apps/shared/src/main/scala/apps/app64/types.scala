@@ -128,7 +128,8 @@ enum Event derives ReadWriter:
 
 case class View (
   phaseView: PhaseView,
-  scoreView: Map[UserId, Int]
+  scoreView: Map[UserId, Int],
+  players: Vector[UserId]
 ) derives ReadWriter
 
 enum PhaseView derives ReadWriter:
