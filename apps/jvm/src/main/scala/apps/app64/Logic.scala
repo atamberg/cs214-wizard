@@ -56,17 +56,26 @@ class Logic extends StateMachine[Event, State, View]:
       case Play =>
         event match
           case PlayCard(card) =>
-            val nextPlayState = state.playCard(userId, card)
+            // The event executes by adding a card for the current player to the trick
+            val nextPlayerState = state.playCard(userId, card)
             Seq(
-              Render(nextPlayState),
+              Render(nextPlayerState),
               Pause(500),
+              // If there are as many cards already played as players,
+              // move on to the next play.
               if state.cardsPlayed.size == state.players.size then
-                Render(nextPlayState.nextPhase(PlayEnd))
+                val nextPlayState = nextPlayerState.nextPhase(PlayEnd)
+                Render(nextPlayState)
                 Pause(500)
+                // If the current player (the last in rotation) has an empty hand, 
+                // enter round end and start a new round.
                 if state.isHandEmpty(userId) then
-                  Render(nextPlayState.nextPhase(RoundEnd).nextRound)
-                else Render(nextPlayState.nextPlay)
-              else Render(nextPlayState.nextPlayer)
+                  val nextRoundState = nextPlayState.nextPhase(RoundEnd)
+                  // TODO: Here there is some logic missing to end the game if some
+                  // number of rounds has been reached.
+                  Render(nextRoundState.nextRound)
+                else Render(nextPlayState.nextPlay) // Otherwise continue to next play
+              else Render(nextPlayerState.nextPlayer) // Otherwise continue to next player
             )
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
