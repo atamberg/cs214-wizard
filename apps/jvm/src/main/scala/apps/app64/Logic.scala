@@ -80,9 +80,10 @@ class Logic extends StateMachine[Event, State, View]:
             phaseView = BidSelecting(state.stakes),
             scoreView = state.scores,
             stateView = StateView(
-              players = state.players,
-              trumpSuit = state.trumpSuit,
-              currentSuit = state.currentSuit
+              players     = state.players,
+              trumpSuit   = state.trumpSuit,
+              currentSuit = state.currentSuit,
+              round       = state.round
             )
           )
         // others must wait
@@ -91,9 +92,10 @@ class Logic extends StateMachine[Event, State, View]:
             phaseView = Waiting(state.players.map(p => (p, state.stakes.keySet(p))).toMap),
             scoreView = state.scores,
             stateView = StateView(
-              players = state.players,
-              trumpSuit = state.trumpSuit,
-              currentSuit = state.currentSuit
+              players     = state.players,
+              trumpSuit   = state.trumpSuit,
+              currentSuit = state.currentSuit,
+              round       = state.round
             )
           )
 
@@ -104,9 +106,10 @@ class Logic extends StateMachine[Event, State, View]:
             phaseView = CardSelecting(state.hands(userId), state.stakes),
             scoreView = state.scores,
             stateView = StateView(
-              players = state.players,
-              trumpSuit = state.trumpSuit,
-              currentSuit = state.currentSuit
+              players     = state.players,
+              trumpSuit   = state.trumpSuit,
+              currentSuit = state.currentSuit,
+              round       = state.round
             )
           )
         // others must wait
@@ -116,9 +119,10 @@ class Logic extends StateMachine[Event, State, View]:
             phaseView = Waiting(state.players.map(p => (p, false)).toMap),
             scoreView = state.scores,
             stateView = StateView(
-              players = state.players,
-              trumpSuit = state.trumpSuit,
-              currentSuit = state.currentSuit
+              players     = state.players,
+              trumpSuit   = state.trumpSuit,
+              currentSuit = state.currentSuit,
+              round       = state.round
             )
           )
 

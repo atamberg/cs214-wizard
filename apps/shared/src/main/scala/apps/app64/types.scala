@@ -225,7 +225,8 @@ case class View (
 case class StateView(
   players: Vector[UserId],
   trumpSuit: Suit,
-  currentSuit: Suit
+  currentSuit: Suit,
+  round: Int
 ) derives ReadWriter
 
 
