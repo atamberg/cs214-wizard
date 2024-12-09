@@ -31,14 +31,15 @@ h1 {
   display: none;
   grid-template-columns: 2fr 1fr;
   grid-template-rows: 1fr;
+  gap: 3rem;
   transition: opacity 200ms;
 }
 
 #players-grid {
   grid-row: 1;
   display: grid;
-  grid-template-columns: 30% 40% 30%;
-  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
   gap: 2rem;
 }
 
@@ -49,7 +50,7 @@ h1 {
 }
 
 .player {
-  grid-template-rows: 3fr 1fr;
+  grid-template-rows: 2fr 1fr;
   margin: .5rem 1rem;
 }
 
@@ -57,7 +58,7 @@ h1 {
   grid-template-rows: 1fr 2fr 1fr;
 }
 
-#my-turn .player#mattia {
+#my-turn .player#mattia, #other-turn .player#mattia {
   grid-template-rows: 2fr 2fr 1fr;
 }
 
@@ -66,10 +67,12 @@ h1 {
   background-color: #ffffff;
   border-radius: 7px;
   border: 1px solid black;
+  width: 5rem;
 }
 
 #submit-bids {
   padding: .3rem; 
+  margin: .2rem;
 
   border: 1px solid black;
   border-radius: 7px;
@@ -84,7 +87,7 @@ h1 {
 
 .valid-card, .invalid-card {
   font-size: 2.3rem;
-  margin: 0 .4rem;
+  margin: .4rem;
   padding-bottom: .4rem;
 }
 
@@ -97,10 +100,6 @@ h1 {
   border-bottom: 2px solid #8f8f8f;
 }
 
-#wait-for-others {
-  font-style: italic;
-}
-
 .player-image {
   align-content: center;
   margin: 1rem 3rem;
@@ -111,14 +110,6 @@ h1 {
 
 .player-image#current-player {
   background-color: #f0ab51;
-}
-
-.player-info {
-  grid-column: 1;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: .5rem;
 }
 
 #cards {
@@ -152,26 +143,6 @@ h1 {
 
 .played-card {
   font-size: 2.3rem;
-}
-
-.grid-3x3 > :nth-child(1) {
-  grid-row: 1;
-  grid-column: 2;
-}
-
-.grid-3x3 > :nth-child(2) {
-  grid-row: 2;
-  grid-column: 1;
-}
-
-.grid-3x3 > :nth-child(3) {
-  grid-row: 2;
-  grid-column: 3;
-}
-
-.grid-3x3 > :nth-child(4) {
-  grid-row: 3;
-  grid-column: 2;
 }
 
 #scoreboard > * {

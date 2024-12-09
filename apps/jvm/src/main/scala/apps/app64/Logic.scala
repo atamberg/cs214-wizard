@@ -74,8 +74,8 @@ class Logic extends StateMachine[Event, State, View]:
 
     state.phase match
       case Bid =>
-        // current player gets selecting view
-        if state.players.head == userId then
+        // current player gets selecting view if they haven't chosen their bid yet
+        if state.players.head == userId && !state.stakes.keySet(userId) then
           View(
             phaseView = BidSelecting(state.stakes),
             scoreView = state.scores,
