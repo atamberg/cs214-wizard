@@ -117,15 +117,15 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
 type Hand = Set[Card]
 
 case class State(
-  players: Vector[UserId],
-  stakes: Map[UserId, Stake],
-  cardsPlayed:  Vector[(UserId, Card)],
-  hands:  Map[UserId, Hand],
-  scores: Map[UserId, Int],
-  trumpSuit: Suit,
+  players:     Vector[UserId],
+  stakes:      Map[UserId, Stake],
+  cardsPlayed: Vector[(UserId, Card)],
+  hands:       Map[UserId, Hand],
+  scores:      Map[UserId, Int],
+  trumpSuit:   Suit,
   currentSuit: Suit,
-  round: Int,
-  phase: Phase
+  round:       Int,
+  phase:       Phase
 ):
   lazy val allReady = players.forall(stakes.keySet.contains)
   // TODO: Check that allReady get uninitialized after a copy! We don't want the old ready to persist in the next state!
@@ -223,16 +223,18 @@ case class View (
 
 
 case class StateView(
-  players: Vector[UserId],
-  trumpSuit: Suit,
+  players:     Vector[UserId],
+  stakes:      Map[UserId, Stake],
+  cardsPlayed: Vector[(UserId, Card)],
+  trumpSuit:   Suit,
   currentSuit: Suit,
-  round: Int
+  round:       Int
 ) derives ReadWriter
 
 
 enum PhaseView derives ReadWriter:
-  case CardSelecting(hand: Hand, stakes: Map[UserId, Stake])
-  case BidSelecting(stakes: Map[UserId, Stake])
+  case CardSelecting(hand: Hand)
+  case BidSelecting
   case Waiting(ready: Map[UserId, Boolean])
 
 
