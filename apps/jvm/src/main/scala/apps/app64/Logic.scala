@@ -51,7 +51,7 @@ class Logic extends StateMachine[Event, State, View]:
                 Pause(1000),
                 Render(nextBidState.nextPhase(Play))
               )
-            else Seq(Render(nextBidState))
+            else Seq(Render(nextBidState.nextPlayer))
           case _ => throw IllegalMoveException("You must bid during the bidding phase!")
       case Play =>
         event match
@@ -60,13 +60,16 @@ class Logic extends StateMachine[Event, State, View]:
             Seq(
               Render(nextPlayState),
               Pause(500),
-              if state.isHandEmpty(userId) 
-                then Render(nextPlayState.nextPhase(RoundEnd)) // TODO: Implement shifting of the first player to play after each round
-                else Render(nextPlayState.nextPlayer)
+              if state.cardsPlayed.size == state.players.size then
+                Render(nextPlayState.nextPhase(PlayEnd))
+                Pause(500)
+                if state.isHandEmpty(userId) then
+                  Render(nextPlayState.nextPhase(RoundEnd).nextRound)
+                else Render(nextPlayState.nextPlay)
+              else Render(nextPlayState.nextPlayer)
             )
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
-      case RoundEnd | GameEnd => throw IllegalMoveException("You can only make a move during a round!")
-      case PlayEnd => ???
+      case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
 
   override def project(state: State)(userId: UserId): View =
     import Phase.*
