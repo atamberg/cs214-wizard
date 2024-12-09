@@ -21,15 +21,15 @@ class Logic extends StateMachine[Event, State, View]:
     import Phase.*
 
     State(
-      clients.toVector, 
-      Map(),
-      Vector(),
-      clients.map(_ -> Set()).toMap, 
-      clients.map(_ -> 0).toMap,
-      Spades,
-      None,
-      1,
-      Bid
+      players     = clients.toVector, 
+      stakes      = Map(),
+      cardsPlayed = Vector(),
+      hands       = clients.map(_ -> Set()).toMap, 
+      scores      = clients.map(_ -> 0).toMap,
+      trumpSuit   = Spades,
+      currentSuit = None,
+      round       = 1,
+      phase       = Bid
     )
 
   override def transition(state: State)(
@@ -75,45 +75,39 @@ class Logic extends StateMachine[Event, State, View]:
     import Phase.*
     import PhaseView.*
 
+    val stateView = StateView(
+      players     = state.players,
+      stakes      = state.stakes,
+      cardsPlayed = state.cardsPlayed,
+      trumpSuit   = state.trumpSuit,
+      currentSuit = state.currentSuit,
+      round       = state.round
+    )
+
     state.phase match
       case Bid =>
         // current player gets selecting view if they haven't chosen their bid yet
         if state.players.head == userId && !state.stakes.keySet(userId) then
           View(
-            phaseView = BidSelecting(state.stakes),
+            phaseView = BidSelecting,
             scoreView = state.scores,
-            stateView = StateView(
-              players     = state.players,
-              trumpSuit   = state.trumpSuit,
-              currentSuit = state.currentSuit,
-              round       = state.round
-            )
+            stateView = stateView
           )
         // others must wait
         else
           View(
             phaseView = Waiting(state.players.map(p => (p, state.stakes.keySet(p))).toMap),
             scoreView = state.scores,
-            stateView = StateView(
-              players     = state.players,
-              trumpSuit   = state.trumpSuit,
-              currentSuit = state.currentSuit,
-              round       = state.round
-            )
+            stateView = stateView
           )
 
       case Play =>
         // current player gets selecting view
         if state.players.head == userId then
           View(
-            phaseView = CardSelecting(state.hands(userId), state.stakes),
+            phaseView = CardSelecting(state.hands(userId)),
             scoreView = state.scores,
-            stateView = StateView(
-              players     = state.players,
-              trumpSuit   = state.trumpSuit,
-              currentSuit = state.currentSuit,
-              round       = state.round
-            )
+            stateView = stateView
           )
         // others must wait
         else
@@ -121,12 +115,7 @@ class Logic extends StateMachine[Event, State, View]:
             // TODO: this is temporary, need to find out how to check whether a player has played
             phaseView = Waiting(state.players.map(p => (p, false)).toMap),
             scoreView = state.scores,
-            stateView = StateView(
-              players     = state.players,
-              trumpSuit   = state.trumpSuit,
-              currentSuit = state.currentSuit,
-              round       = state.round
-            )
+            stateView = stateView
           )
 
       case RoundEnd => ???
