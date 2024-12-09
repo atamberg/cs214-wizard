@@ -37,7 +37,8 @@ object Deck:
 
 case class Card(suit: Suit, value: Int) derives ReadWriter:
   import Suit.*
-
+  val isWizard = value == 15
+  val isJester = value == 1
   // Jester = 1, 2-10 = 2-10,  Jack = 11, Queen = 12, King = 13, Ace = 14, Wizard = 15
   override def toString =
     (this.suit, this.value) match
@@ -166,14 +167,22 @@ case class State(
       (player, card) <- cardsPlayed
       otherCards = cardsPlayed.dropWhile(_ != (player, card)).map(_._2)
     yield
-      // TODO: if !card.isSpecialCardOrSomethingInOrderToDoWizard/JokerChecking then
+      // TODO: This is missing some jester edge cases
+      if !card.isWizard then
       player -> (
         stakes(player).copy(
           (stakes(player).tricksWon + card.scoreAgainst(otherCards, trumpSuit, currentSuit))
           ,stakes(player).bid)
       )
-      // TODO: else implement the functionality for special cards
-      ).toMap
+      else 
+        val cardIndex = cardsPlayed.indexOf((player, card))
+        player -> (
+          stakes(player).copy(
+            (stakes(player).tricksWon + (if cardsPlayed.take(cardIndex).exists((_, c) => c.isWizard) then 0 else 1))
+          ,stakes(player).bid)
+      )
+      ).toMap 
+
 
   def nextPlay: State = 
     val nextStakes = updateStakes()
