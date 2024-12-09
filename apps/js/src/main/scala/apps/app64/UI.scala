@@ -29,80 +29,106 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
       renderView(userId, view)
     )
 
-
-  def announceBid(bidInput: String): Unit =
-    bidInput.toIntOption match
-      case Some(bid) => sendEvent(Event.AnnounceBid(bid))
-      case None      => {} // TODO: Resolve this in backend
-
-
   def renderView(userId: UserId, view: View): Frag =
     val scores    = view.scoreView
-    val players   = view.stateView.players
-    val trumpSuit = view.stateView.trumpSuit
-    val currSuit  = view.stateView.currentSuit
+    val StateView(
+      players, stakes, cardsPlayed,
+      trumpSuit, currentsuit, round
+    ) = view.stateView
 
     view.phaseView match
-      case PhaseView.CardSelecting(hand, stakes) => frag()
-      case PhaseView.BidSelecting(stakes) =>
+      case PhaseView.CardSelecting(hand) =>
         frag(
+
+        )
+
+      case PhaseView.BidSelecting =>
+        frag(
+          // player + cards grid
           div(
-            cls := "grid-3x3",
             id  := "players-grid",
 
-            for player <- players yield div(
-              cls := "player",
+            renderPlayers(userId, players, stakes){
+              div(
+                id := "bid-buttons",
 
-              if player == userId then {
-                val bidInput = input(
-                  tpe := "number",
-                  id  := "num-bids",
-                  placeholder := "Number of bids"
-                ).render
-
-                div(
-                  bidInput,
-                  input(
-                    tpe := "button",
-                    value := "Submit",
-                    id := "submit-bids",
-                    onclick := announceBid(bidInput.value)
-                  )
+                for i <- (1 to round) yield input(
+                  cls := "bid-number",
+                  tpe := "button",
+                  value := s"$i",
+                  onclick := {() => sendEvent(Event.AnnounceBid(i))}
                 )
-              } else frag(),
-
-              div(
-                cls := "player-image",
-                if player == userId then id := "current-player" else frag(),
-                player.head.toUpper.toString
-              ),
-
-              div(
-                cls := "player-info",
-                div(cls := "player-name", player.capitalize),
-                {
-                  val stakeOption = stakes.get(player)
-                  stakeOption match
-                    case None => div(cls := "player-stakes", "0 | ?")
-                    case Some(stake) =>
-                      div(cls := "player-stakes", s"${stake.tricksWon} | ${stake.bid}")
-                }
               )
-            ),
+            },
 
-            div(
-              id := "cards",
-              div (
-                id := "card-grid", cls := "grid-3x3",
-                div(id := "current-trump", trumpSuit.toString())
-              )
-            )
+            renderCards(trumpSuit)
           ),
 
-          // TODO: Scoreboard
+          renderScoreBoard(scores)
         )
-      case PhaseView.Waiting(ready) => frag()
+      case PhaseView.Waiting(ready) => 
+        frag(
+
+        )
   end renderView
+
+
+  def renderPlayers[T <: dom.Element](
+    userId: UserId,
+    players: Vector[UserId],
+    stakes: Map[UserId, Stake]
+  )(currUserView: TypedTag[T]) =
+    for player <- players.sorted yield div(
+      cls := "player",
+
+      if player == userId then currUserView else frag(),
+
+      div(
+        cls := "player-image",
+        if player == userId then id := "current-player" else frag(),
+        player.head.toUpper.toString
+      ),
+
+      div(
+        cls := "player-info",
+        div(cls := "player-name", player.capitalize),
+        {
+          val stakeOption = stakes.get(player)
+          stakeOption match
+            case None => div(cls := "player-stakes", "0 | ?")
+            case Some(stake) =>
+              div(cls := "player-stakes", s"${stake.tricksWon} | ${stake.bid}")
+        }
+      )
+    )
+  end renderPlayers
+
+
+  def renderCards(trumpSuit: Suit) =
+    // TODO: add in cards lmao
+    div(
+      id := "cards",
+      div (
+        id := "card-grid",
+        div(id := "current-trump", trumpSuit.toString())
+      )
+    )
+  end renderCards
+
+
+  def renderScoreBoard(scores: Map[UserId, Int]) =
+    div(
+      id := "scoreboard",
+      h2("Scoreboard"),
+      div(
+        (for (player, score) <- scores yield div(
+          cls := "scoreboard-item",
+          s"$player: $score"
+        )).toVector
+      )
+    )
+  end renderScoreBoard
+
 
   override def css: String = super.css +
     """
@@ -139,20 +165,18 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   margin: .5rem 1rem;
     | }
     |
-    | #num-bids {
-    |   padding: .3rem;
-    |   background-color: #ffffff;
-    |   border-radius: 7px;
-    |   border: 1px solid black;
-    |   width: 5rem;
+    | #bid-buttons {
+    |   display: flex;
+    |   justify-content: center;
     | }
     |
-    | #submit-bids {
-    |   padding: .3rem;
-    |   margin: .2rem;
-    |
+    | .bid-number {
+    |   padding: .3rem .5rem;
+    |   background-color: #ffffff;
+    |   border-radius: 100%;
     |   border: 1px solid black;
-    |   border-radius: 7px;
+    |   margin: 0rem .2rem;
+    |   cursor: pointer;
     | }
     |
     | #player-cards {
@@ -236,7 +260,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   border-bottom: 2px black solid;
     | }
     |
-    | #scoreboard > div > div {
+    | .scoreboard-item {
     |   margin-left: 1rem;
     |   display: grid;
     |   align-items: center;
