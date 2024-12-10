@@ -9,6 +9,7 @@ import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExportTopLevel}
 import cs214.webapp.client.graphics.WebClientAppInstance
+import upickle.implicits.key
 
 @JSExportTopLevel("app64")
 object UI extends WSClientApp:
@@ -26,10 +27,12 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   override def render(userId: UserId, view: View): Frag =
     frag(
       h2("Wizards - It's basically gambling Jass"),
+      // TODO: add legend for player colors
       renderView(userId, view)
     )
 
   def renderView(userId: UserId, view: View): Frag =
+    import PhaseView.*
     val scores = view.scoreView
     val StateView(
       players, stakes, cardsPlayed,
@@ -37,32 +40,21 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     ) = view.stateView
 
     view.phaseView match
-      case PhaseView.CardSelecting(hand) =>
+      case CardSelecting(hand) =>
         frag(
           div(
             id := "players-grid",
 
-            renderPlayers(userId, players, stakes){
+            renderPlayers(userId, players, stakes, Set())({
               div(
-                id := "player-cards",
+                id := "player-hand",
 
-                if userId == players.head then {
-                  // playable cards
-                  (for card <- hand yield div(
-                    // TODO: valid and invalid cards => backend
-                    cls := "valid-card",
-                    card.toString
-                  )).toVector
-                }
-                else {
-                  // non-playable cards, just displayed
-                  (for card <- hand yield div(
-                    cls := "invalid-card",
-                    card.toString
-                  )).toVector
-                }
+                if userId == players.head then
+                  renderValidHand(hand)
+                else 
+                  renderHand(hand.map(_._1))
               )
-            },
+            }, false),
 
             renderCards(trumpSuit, cardsPlayed)
           ),
@@ -70,14 +62,16 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
           renderScoreBoard(scores)
         )
 
-      case PhaseView.BidSelecting =>
+      case BidSelecting(hand) =>
         frag(
           div(
             id := "players-grid",
 
-            renderPlayers(userId, players, stakes){
+            renderPlayers(userId, players, stakes, hand){
               div(
                 id := "bid-buttons",
+
+                div("Bids:"),
 
                 for i <- (0 to round) yield input(
                   cls := "bid-number",
@@ -94,12 +88,12 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
           renderScoreBoard(scores)
         )
 
-      case PhaseView.Waiting(ready) => 
+      case Waiting(hand) =>
         frag(
           div(
             id := "players-grid",
 
-            renderPlayers(userId, players, stakes){
+            renderPlayers(userId, players, stakes, hand){
               div(
                 id := "wait-for-others",
                 "Wait for other players..."
@@ -111,19 +105,42 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
           renderScoreBoard(scores)
         )
+
+      case RoundEnding =>
+        frag(
+
+        )
+
+      case GameEnding =>
+        frag(
+
+        )
+
+      case PlayEnding(hand) =>
+        frag(
+
+        )
   end renderView
 
 
   def renderPlayers[T <: dom.Element](
-    userId: UserId,
+    userId:  UserId,
     players: Vector[UserId],
-    stakes: Map[UserId, Stake]
-  )(currUserView: TypedTag[T]) =
+    stakes:  Map[UserId, Stake],
+    hand:    Hand
+  )(
+    currUserView: TypedTag[T],
+    handRender:  Boolean = true
+  ) =
     // TODO: maybe we should sort differently
     for player <- players.sorted yield div(
       cls := "player",
 
-      if player == userId then currUserView else frag(),
+      if player == userId 
+        then currUserView else frag(),
+
+      if handRender && player == userId 
+        then renderHand(hand) else frag(),
 
       div(
         cls := "player-image",
@@ -166,6 +183,33 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
       )
     )
   end renderCards
+
+
+  def renderHand(hand: Hand) =
+    div(
+      id := "player-hand",
+      (for card <- hand yield div(
+        cls := "invalid-card",
+        card.toString
+      )).toVector
+    )
+  end renderHand
+
+
+  def renderValidHand(validHand: Set[(Card, Boolean)]) =
+    div(
+      id := "player-hand",
+      (for (card, valid) <- validHand yield div(
+        cls := (if valid then "valid-card" else "invalid-card"),
+
+        if valid then
+          onclick := {() => sendEvent(Event.PlayCard(card))}
+        else
+          frag(),
+
+        card.toString
+      )).toVector
+    )
 
 
   def renderScoreBoard(scores: Map[UserId, Int]) =
@@ -216,13 +260,15 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | }
     |
     | .player {
-    |   grid-template-rows: auto 2fr 1fr;
+    |   grid-template-rows: auto repeat(3, 1fr);
     |   margin: .5rem 1rem;
     | }
     |
     | #bid-buttons {
     |   display: flex;
     |   justify-content: center;
+    |   align-items: center;
+    |   margin-bottom: .3rem
     | }
     |
     | .bid-number {
@@ -234,7 +280,8 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   cursor: pointer;
     | }
     |
-    | #player-cards {
+    | #player-hand {
+    |   grid-row: 2;
     |   display: flex;
     |   justify-content: center;
     |   align-items: center;
@@ -242,7 +289,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | }
     |
     | .valid-card, .invalid-card {
-    |   font-size: 2.3rem;
+    |   font-size: 2rem;
     |   margin: .4rem;
     |   padding-bottom: .4rem;
     | }
@@ -263,12 +310,12 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | }
     |
     | .player-image {
-    |   grid-row: 2;
+    |   grid-row: 3;
     |   align-content: center;
-    |   margin: 1rem 3rem;
+    |   margin: .7rem 2rem;
     |   background-color: #80d4ff;
     |   border-radius: 7px;
-    |   font-size: 1.7rem;
+    |   font-size: 1.5rem;
     | }
     |
     | .player-image.current-player {
@@ -280,7 +327,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | }
     |
     | .player-info {
-    |   grid-row: 3;
+    |   grid-row: 4;
     | }
     |
     | #cards {
@@ -299,7 +346,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   justify-content: center;
     |   align-items: center;
     |
-    |   gap: 1rem;
+    |   gap: .8rem;
     |   grid-template-columns: repeat(3, 1fr);
     |   grid-template-rows: repeat(3, 1fr);
     | }
@@ -313,7 +360,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | }
     |
     | .played-card {
-    |   font-size: 2.3rem;
+    |   font-size: 2rem;
     | }
     |
     | #scoreboard > * {
