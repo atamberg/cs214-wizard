@@ -155,7 +155,6 @@ case class State(
     copy(phase = phase)
 
   def withNewCards: State =
-    // require(allReady && cardsPlayed.isEmpty && hands.isEmpty)
     copy(
         hands = Deck.dealNCards(round, players)
       )
@@ -210,7 +209,13 @@ case class State(
     yield
       player -> (scores(player) + stake.score)
 
+  /**
+    * When called on a state in RoundEnd, transitions to next Bid phase
+    *
+    * @return new state with 
+    */
   def nextRound: State =
+    require(this.phase == Phase.RoundEnd)
     copy(
       players = players.tail :+ players.head,
       stakes = Map(),
@@ -221,7 +226,35 @@ case class State(
       trumpSuit = Suit.random,
       round = round + 1,
       phase = Phase.Bid
-      )
+      ).withNewCards
+
+  private def isValid(card: Card): Boolean =
+    val highestCurrentSuit = cardsPlayed.map(_._2)
+      .filter(_.suit == currentSuit)
+      .filterNot(_.isWizard)
+      .map(_.value)
+      .max
+
+    val highestCurrentTrump = cardsPlayed.map(_._2)
+      .filter(_.suit == trumpSuit)
+      .filterNot(_.isWizard)
+      .map(_.value)
+      .max
+
+    card.isWizard
+    || card.isJester
+    || (card.suit == currentSuit && card.value > highestCurrentSuit)
+    || (card.suit == trumpSuit && card.value > highestCurrentTrump)
+  end isValid
+
+  def getValidHand(userId: UserId): Set[(Card, Boolean)] = 
+    val validCards = (for
+        card <- hands(userId)
+      yield
+        (card, isValid(card)))
+    if validCards.isEmpty then hands(userId).map((_, true))
+    else validCards
+  end getValidHand
 
   def isHandEmpty(id: UserId): Boolean =
     hands(id).isEmpty
@@ -252,9 +285,9 @@ case class StateView(
 
 
 enum PhaseView derives ReadWriter:
-  case CardSelecting(hand: Hand)
+  case CardSelecting(validHand: Set[(Card, Boolean)])
   case BidSelecting
-  case Waiting(ready: Map[UserId, Boolean])
+  case Waiting(hand: Hand)
 
 
 extension [K,V](m: Map[K,V])
