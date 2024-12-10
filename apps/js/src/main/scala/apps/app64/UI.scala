@@ -49,7 +49,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
                 if userId == players.head then {
                   // playable cards
                   (for card <- hand yield div(
-                    // TODO: valid and invalid cards
+                    // TODO: valid and invalid cards => backend
                     cls := "valid-card",
                     card.toString
                   )).toVector
@@ -119,7 +119,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     players: Vector[UserId],
     stakes: Map[UserId, Stake]
   )(currUserView: TypedTag[T]) =
-    // TODO: maybe we should sort in the backend
+    // TODO: maybe we should sort differently
     for player <- players.sorted yield div(
       cls := "player",
 
@@ -127,7 +127,8 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
       div(
         cls := "player-image",
-        if player == userId then id := "current-player" else frag(),
+        if player == players.head then cls := "current-player" else frag(),
+        if player == userId then cls:= "current-user" else frag(),
         player.head.toUpper.toString
       ),
 
@@ -150,7 +151,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     trumpSuit: Suit, 
     cardsPlayed: Vector[(UserId, Card)]
   ) =
-    // TODO: maybe we should sort in the backend
+    // TODO: maybe we should sort differently
     val cardsSorted: Vector[Card] = 
       cardsPlayed.sortBy(_._1).map(_._2)
     div(
@@ -174,7 +175,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
       div(
         (for (player, score) <- scores yield div(
           cls := "scoreboard-item",
-          s"$player: $score"
+          s"${player.capitalize}: $score"
         )).toVector
       )
     )
@@ -183,7 +184,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
   override def css: String = super.css +
     """
-    | .app64 .h2 {
+    | .h2 {
     |   padding: 1rem;
     | }
     |
@@ -194,6 +195,9 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |
     | * {
     |   font-family: monospace;
+    | }
+    |
+    | span, div {
     |   font-size: .8rem;
     | }
     |
@@ -202,7 +206,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   display: grid;
     |   grid-template-columns: repeat(3, 1fr);
     |   grid-template-rows: repeat(3, 1fr);
-    |   gap: 2rem;
+    |   gap: 1.5rem;
     | }
     |
     | .player, #cards {
@@ -245,6 +249,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |
     | .valid-card {
     |   border-bottom: 2px solid #ecae03;
+    |   cursor: pointer;
     | }
     |
     | .invalid-card {
@@ -261,13 +266,17 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   grid-row: 2;
     |   align-content: center;
     |   margin: 1rem 3rem;
-    |   background-color: #50aaff;
+    |   background-color: #80d4ff;
     |   border-radius: 7px;
-    |   font-size: 2rem;
+    |   font-size: 1.7rem;
     | }
     |
-    | .player-image#current-player {
-    |   background-color: #f0ab51;
+    | .player-image.current-player {
+    |   background-color: #ff9777;
+    | }
+    | 
+    | .player-image.current-user {
+    |   border: 2px dashed black;
     | }
     |
     | .player-info {
@@ -291,15 +300,15 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   align-items: center;
     |
     |   gap: 1rem;
-    |   grid-template-columns: 2fr 3fr 2fr;
-    |   grid-template-rows: 2fr 3fr 2fr;
+    |   grid-template-columns: repeat(3, 1fr);
+    |   grid-template-rows: repeat(3, 1fr);
     | }
     |
     | #current-trump {
     |   grid-column: 2;
     |   grid-row: 2;
     |
-    |   font-size: 3rem;
+    |   font-size: 2rem;
     |   opacity: .5;
     | }
     |

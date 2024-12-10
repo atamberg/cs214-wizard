@@ -114,21 +114,12 @@ class Logic extends StateMachine[Event, State, View]:
           )
 
       case Play =>
-        // current player gets selecting view
-        if state.players.head == userId then
-          View(
-            phaseView = CardSelecting(state.hands(userId)),
-            scoreView = state.scores,
-            stateView = stateView
-          )
-        // others must wait
-        else
-          View(
-            // TODO: this is temporary, need to find out how to check whether a player has played
-            phaseView = Waiting(state.players.map(p => (p, false)).toMap),
-            scoreView = state.scores,
-            stateView = stateView
-          )
+        // user distinction is handled in frontend, come at me
+        View(
+          phaseView = CardSelecting(state.hands(userId)),
+          scoreView = state.scores,
+          stateView = stateView
+        )
 
       case RoundEnd => ???
       case GameEnd  => ???
