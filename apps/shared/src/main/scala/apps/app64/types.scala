@@ -179,7 +179,7 @@ case class State(
     val newHands = hands.dropAtKey(id, card)
     val nextCardsPlayed = cardsPlayed :+ (id, card)
     val prevState = copy(cardsPlayed = nextCardsPlayed, hands = newHands)
-    if cardsPlayed.isEmpty then
+    if currentSuit == Suit.None then
       prevState.copy(currentSuit = card.suit)
     else
       prevState

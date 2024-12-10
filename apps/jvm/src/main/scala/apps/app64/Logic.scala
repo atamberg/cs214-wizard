@@ -49,28 +49,21 @@ class Logic extends StateMachine[Event, State, View]:
           case PlayCard(card) =>
             // The event executes by adding a card for the current player to the trick
             // If there is no suit yet, change current suit to the suit of this card
-            val nextPlayerState = if state.currentSuit != Suit.None then 
-              state.playCard(userId, card)
-            else 
-              state.playCard(userId, card).copy(currentSuit = card.suit)
+            val nextPlayerState = state.playCard(userId, card) // sets suit if needed
+            val postPlayState = {
+              if nextPlayerState.cardsPlayed.size == nextPlayerState.players.size then
+                nextPlayerState.nextPhase(PlayEnd).nextPlay
+              else if nextPlayerState.round + 1 > Deck.size / nextPlayerState.players.size then // If maximum number of rounds reached
+                nextPlayerState.nextPhase(GameEnd)
+              else if nextPlayerState.hands.isEmpty then
+                nextPlayerState.nextPhase(RoundEnd).nextRound
+              else 
+                nextPlayerState.nextPlayer
+            }
             Seq(
               Render(nextPlayerState),
               Pause(500),
-              // If there are as many cards already played as players,
-              // move on to the next play.
-              if nextPlayerState.cardsPlayed.size == nextPlayerState.players.size then
-                val nextPlayState = nextPlayerState.nextPhase(PlayEnd)
-                Render(nextPlayState)
-                Pause(500)
-                // If the current player (the last in rotation) has an empty hand, 
-                // enter round end and start a new round.
-                if nextPlayState.isHandEmpty(userId) then
-                  val nextRoundState = nextPlayState.nextPhase(RoundEnd)
-                  // TODO: Here there is some logic missing to end the game if some
-                  // number of rounds has been reached.
-                  Render(nextRoundState.nextRound)
-                else Render(nextPlayState.nextPlay) // Otherwise continue to next play
-              else Render(nextPlayerState.nextPlayer) // Otherwise continue to next player
+              Render(postPlayState)
             )
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
