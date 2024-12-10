@@ -50,20 +50,29 @@ class Logic extends StateMachine[Event, State, View]:
             // The event executes by adding a card for the current player to the trick
             // If there is no suit yet, change current suit to the suit of this card
             val nextPlayerState = state.playCard(userId, card) // sets suit if needed
-            val postPlayState = {
-              if nextPlayerState.cardsPlayed.size == nextPlayerState.players.size then
-                nextPlayerState.nextPhase(PlayEnd).nextPlay
-              else if nextPlayerState.round + 1 > Deck.size / nextPlayerState.players.size then // If maximum number of rounds reached
+            val secondState = {
+              if nextPlayerState.round + 1 > Deck.size / nextPlayerState.players.size then // If maximum number of rounds reached
                 nextPlayerState.nextPhase(GameEnd)
-              else if nextPlayerState.hands.isEmpty then
-                nextPlayerState.nextPhase(RoundEnd).nextRound
-              else 
-                nextPlayerState.nextPlayer
+              else if nextPlayerState.hands.forall(e => e._2.isEmpty) then
+                nextPlayerState.nextPhase(RoundEnd)
+              else if nextPlayerState.cardsPlayed.size == nextPlayerState.players.size then
+                nextPlayerState.nextPhase(PlayEnd)
+              else
+                nextPlayerState
+            }
+            val thirdState = {
+              secondState.phase match
+                case Play => secondState.nextPlayer
+                case PlayEnd => secondState.nextPlay
+                case RoundEnd => secondState.nextRound
+                case _ => secondState
             }
             Seq(
               Render(nextPlayerState),
               Pause(500),
-              Render(postPlayState)
+              Render(secondState),
+              Pause(1000),
+              Render(thirdState)
             )
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
