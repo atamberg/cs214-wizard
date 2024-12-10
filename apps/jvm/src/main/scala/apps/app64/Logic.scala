@@ -19,18 +19,7 @@ class Logic extends StateMachine[Event, State, View]:
   override def init(clients: Seq[UserId]): State = 
     import Suit.*
     import Phase.*
-
-    State(
-      players     = clients.toVector, 
-      stakes      = Map(),
-      cardsPlayed = Vector(),
-      hands       = clients.map(_ -> Set()).toMap, 
-      scores      = clients.map(_ -> 0).toMap,
-      trumpSuit   = Spades,
-      currentSuit = None,
-      round       = 1,
-      phase       = Bid
-    ).withNewCards
+    State.defaultState(clients).withNewCards
 
   override def transition(state: State)(
     userId: UserId,

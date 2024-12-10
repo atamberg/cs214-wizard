@@ -121,6 +121,20 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
 
 type Hand = Set[Card]
 
+object State:
+  def defaultState(clients: Seq[UserId]): State = 
+    State(
+      players     = clients.toVector, 
+      stakes      = Map(),
+      cardsPlayed = Vector(),
+      hands       = clients.map(_ -> Set()).toMap, 
+      scores      = clients.map(_ -> 0).toMap,
+      trumpSuit   = Suit.Spades,
+      currentSuit = Suit.None,
+      round       = 1,
+      phase       = Phase.Bid
+    )
+
 case class State(
   players:     Vector[UserId],
   stakes:      Map[UserId, Stake],
