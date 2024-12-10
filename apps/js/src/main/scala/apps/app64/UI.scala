@@ -30,7 +30,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     )
 
   def renderView(userId: UserId, view: View): Frag =
-    val scores    = view.scoreView
+    val scores = view.scoreView
     val StateView(
       players, stakes, cardsPlayed,
       trumpSuit, currentsuit, round
@@ -39,20 +39,47 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     view.phaseView match
       case PhaseView.CardSelecting(hand) =>
         frag(
+          div(
+            id := "players-grid",
 
+            renderPlayers(userId, players, stakes){
+              div(
+                id := "player-cards",
+
+                if userId == players.head then {
+                  // playable cards
+                  (for card <- hand yield div(
+                    // TODO: valid and invalid cards
+                    cls := "valid-card",
+                    card.toString
+                  )).toVector
+                }
+                else {
+                  // non-playable cards, just displayed
+                  (for card <- hand yield div(
+                    cls := "invalid-card",
+                    card.toString
+                  )).toVector
+                }
+              )
+            },
+
+            renderCards(trumpSuit, cardsPlayed)
+          ),
+
+          renderScoreBoard(scores)
         )
 
       case PhaseView.BidSelecting =>
         frag(
-          // player + cards grid
           div(
-            id  := "players-grid",
+            id := "players-grid",
 
             renderPlayers(userId, players, stakes){
               div(
                 id := "bid-buttons",
 
-                for i <- (1 to round) yield input(
+                for i <- (0 to round) yield input(
                   cls := "bid-number",
                   tpe := "button",
                   value := s"$i",
@@ -61,14 +88,28 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
               )
             },
 
-            renderCards(trumpSuit)
+            renderCards(trumpSuit, cardsPlayed)
           ),
 
           renderScoreBoard(scores)
         )
+
       case PhaseView.Waiting(ready) => 
         frag(
+          div(
+            id := "players-grid",
 
+            renderPlayers(userId, players, stakes){
+              div(
+                id := "wait-for-others",
+                "Wait for other players..."
+              )
+            },
+
+            renderCards(trumpSuit, cardsPlayed)
+          ),
+
+          renderScoreBoard(scores)
         )
   end renderView
 
@@ -78,6 +119,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     players: Vector[UserId],
     stakes: Map[UserId, Stake]
   )(currUserView: TypedTag[T]) =
+    // TODO: maybe we should sort in the backend
     for player <- players.sorted yield div(
       cls := "player",
 
@@ -104,13 +146,22 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   end renderPlayers
 
 
-  def renderCards(trumpSuit: Suit) =
-    // TODO: add in cards lmao
+  def renderCards(
+    trumpSuit: Suit, 
+    cardsPlayed: Vector[(UserId, Card)]
+  ) =
+    // TODO: maybe we should sort in the backend
+    val cardsSorted: Vector[Card] = 
+      cardsPlayed.sortBy(_._1).map(_._2)
     div(
       id := "cards",
       div (
         id := "card-grid",
-        div(id := "current-trump", trumpSuit.toString())
+        for card <- cardsSorted yield div(
+          cls := "played-card", 
+          card.toString
+        ),
+        div(id := "current-trump", trumpSuit.toString()),
       )
     )
   end renderCards
@@ -199,6 +250,11 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | .invalid-card {
     |   opacity: .4;
     |   border-bottom: 2px solid #8f8f8f;
+    | }
+    |
+    | #wait-for-others {
+    |   font-style: italic;
+    |   text-wrap: balance;
     | }
     |
     | .player-image {
