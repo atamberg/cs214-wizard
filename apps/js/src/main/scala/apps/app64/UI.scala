@@ -106,17 +106,27 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
           renderScoreBoard(scores)
         )
 
+      case PlayEnding(hand) =>
+        frag(
+          div(
+            id := "players-grid",
+
+            renderPlayers(userId, players, stakes, hand)(div()),
+
+            div(
+              id  := "cards",
+              cls := "congrats",
+
+              s"${userId.capitalize} scored the trick!"
+            )
+          )
+        )
+
       case RoundEnding =>
         frag(
-
         )
 
       case GameEnding =>
-        frag(
-
-        )
-
-      case PlayEnding(hand) =>
         frag(
 
         )
@@ -339,6 +349,11 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   grid-template-rows: 1fr;
     |   text-align: center;
     |   padding: 1rem .7rem;
+    | }
+    |
+    | .congrats {
+    |   background-color: #ffb726;
+    |   font-size: 1.2rem;
     | }
     |
     | #card-grid {
