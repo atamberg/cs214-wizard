@@ -31,8 +31,12 @@ object Deck:
       value <- (1 to 15)
     yield
       Card(suit, value)).toSet
+
   def dealNCards(n: Int, players: Vector[UserId]): Map[UserId, Hand] =
-    require(shuffledCards.size/players.size >= n)
+    require(
+      shuffledCards.size/players.size >= n,
+      s"shuffledCards.size / players.size < n"
+    )
     var mutCards = shuffledCards
     players.map(_ -> {
       val hand = mutCards.take(n).toSet
@@ -150,13 +154,25 @@ case class State(
   // TODO: Check that allReady get uninitialized after a copy! We don't want the old ready to persist in the next state!
 
   def placeBid(id: UserId, bid: Int): State =
-    require(phase == Phase.Bid)
-    require(!stakes.keySet.contains(id))
+    require(
+      phase == Phase.Bid,
+      s"phase = $phase is not Bid"
+    )
+    require(
+      !stakes.keySet.contains(id),
+      s"stakes.keySet = ${stakes.keySet} does not contain id = $id"
+    )
     copy(stakes = stakes + (id -> Stake(0, bid)))
 
   def playCard(id: UserId, card: Card): State =
-    require(players.head == id)
-    require(hands(id).contains(card))
+    require(
+      players.head == id,
+      s"players.head = ${players.head} does not equal id = $id"
+    )
+    require(
+      hands(id).contains(card),
+      s"hand = ${hands(id)} does not contain card = $card"
+    )
     val newHands = hands.dropAtKey(id, card)
     val nextCardsPlayed = cardsPlayed :+ (id, card)
     val prevState = copy(cardsPlayed = nextCardsPlayed, hands = newHands)
@@ -178,14 +194,20 @@ case class State(
 
   private def withPlayerNext(user: UserId): State =
     // TODO: I think using mutability is usefull here, needs proper testing obviously
-    require(players.contains(user))
+    require(
+      players.contains(user),
+      s"players = $players does not contain user = $user"
+    )
     var playerQueue = players
     while playerQueue.head != user do
       playerQueue = playerQueue.tail :+ playerQueue.head
     copy(players = playerQueue)
 
   private def updateStakes(): Map[UserId, Stake]  = 
-    require(phase == Phase.GameEnd)
+    require(
+      phase == Phase.PlayEnd,
+      s"phase = $phase is not PlayEnd"
+    )
     (for
       (player, card) <- cardsPlayed
       otherCards = cardsPlayed.dropWhile(_ != (player, card)).map(_._2)
@@ -229,7 +251,10 @@ case class State(
     * @return new state with 
     */
   def nextRound: State =
-    require(this.phase == Phase.RoundEnd)
+    require(
+      this.phase == Phase.RoundEnd,
+      s"phase = ${this.phase} is not RoundEnd"
+    )
     copy(
       players = players.tail :+ players.head,
       stakes = Map(),
@@ -266,7 +291,7 @@ case class State(
         card <- hands(userId)
       yield
         (card, isValid(card)))
-    if validCards.isEmpty || currentSuit == Suit.None then 
+    if !validCards.exists(_._2) || currentSuit == Suit.None then 
       hands(userId).map((_, true))
     else validCards
   end getValidHand
