@@ -30,7 +30,7 @@ class Logic extends StateMachine[Event, State, View]:
       currentSuit = None,
       round       = 1,
       phase       = Bid
-    )
+    ).withNewCards
 
   override def transition(state: State)(
     userId: UserId,
@@ -49,8 +49,7 @@ class Logic extends StateMachine[Event, State, View]:
               Seq(
                 Render(nextBidState),
                 Pause(1000),
-                Render(nextBidState.withNewCards
-                                   .nextPlayer
+                Render(nextBidState.nextPlayer
                                    .nextPhase(Play)
                                    )
               )
@@ -108,18 +107,27 @@ class Logic extends StateMachine[Event, State, View]:
         // others must wait
         else
           View(
-            phaseView = Waiting(state.players.map(p => (p, state.stakes.keySet(p))).toMap),
+            phaseView = Waiting(state.hands(userId)),
             scoreView = state.scores,
             stateView = stateView
           )
 
       case Play =>
         // user distinction is handled in frontend, come at me
-        View(
-          phaseView = CardSelecting(state.hands(userId)),
-          scoreView = state.scores,
-          stateView = stateView
-        )
+        if state.players.head == userId 
+          && !state.cardsPlayed.map(_._1).contains(userId) then
+          View(
+            phaseView = CardSelecting(state.getValidHand(userId)),
+            scoreView = state.scores,
+            stateView = stateView
+          )
+        // others must wait
+        else
+          View(
+            phaseView = Waiting(state.hands(userId)),
+            scoreView = state.scores,
+            stateView = stateView
+          )
 
       case RoundEnd => ???
       case GameEnd  => ???
