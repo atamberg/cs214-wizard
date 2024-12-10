@@ -20,20 +20,25 @@ enum Suit derives ReadWriter:
       case None =>     ""
 
 object Suit:
-  def random = Suit.values(between(0, Suit.values.size))
+  val allSuits: Array[Suit] = Suit.values.filterNot(_==Suit.None)
+  def random = allSuits(between(0, allSuits.size))
 
 
 object Deck:
   private def shuffledCards: Set[Card] = shuffle:
     (for 
-      suit <- Suit.values
-      value <- (2 to 15)
+      suit <- Suit.allSuits
+      value <- (1 to 15)
     yield
       Card(suit, value)).toSet
   def dealNCards(n: Int, players: Vector[UserId]): Map[UserId, Hand] =
     require(shuffledCards.size/players.size >= n)
     var mutCards = shuffledCards
-    players.map(_ -> mutCards.take(n).toSet).toMap
+    players.map(_ -> {
+      val hand = mutCards.take(n).toSet
+      mutCards = mutCards.drop(n)
+      hand
+    }).toMap
 
 case class Card(suit: Suit, value: Int) derives ReadWriter:
   import Suit.*
@@ -101,7 +106,6 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
       case _              => "🂠"
 
   def scoreAgainst(others: Vector[Card], trump: Suit, current: Suit): Int =
-    // TODO: This does not implement the functionality needed for jokers/wizards
     if this.suit == current && others.forall(c => 
           c.suit != trump && (
           c.suit != this.suit  || 
@@ -149,6 +153,12 @@ case class State(
 
   def nextPhase(phase: Phase): State =
     copy(phase = phase)
+
+  def withNewCards: State =
+    // require(allReady && cardsPlayed.isEmpty && hands.isEmpty)
+    copy(
+        hands = Deck.dealNCards(round, players)
+      )
 
   def nextPlayer: State =
     copy(players = players.tail :+ players.head)

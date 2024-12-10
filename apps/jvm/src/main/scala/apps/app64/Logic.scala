@@ -49,7 +49,10 @@ class Logic extends StateMachine[Event, State, View]:
               Seq(
                 Render(nextBidState),
                 Pause(1000),
-                Render(nextBidState.nextPhase(Play))
+                Render(nextBidState.withNewCards
+                                   .nextPlayer
+                                   .nextPhase(Play)
+                                   )
               )
             else Seq(Render(nextBidState.nextPlayer))
           case _ => throw IllegalMoveException("You must bid during the bidding phase!")
@@ -63,13 +66,13 @@ class Logic extends StateMachine[Event, State, View]:
               Pause(500),
               // If there are as many cards already played as players,
               // move on to the next play.
-              if state.cardsPlayed.size == state.players.size then
+              if nextPlayerState.cardsPlayed.size == nextPlayerState.players.size then
                 val nextPlayState = nextPlayerState.nextPhase(PlayEnd)
                 Render(nextPlayState)
                 Pause(500)
                 // If the current player (the last in rotation) has an empty hand, 
                 // enter round end and start a new round.
-                if state.isHandEmpty(userId) then
+                if nextPlayState.isHandEmpty(userId) then
                   val nextRoundState = nextPlayState.nextPhase(RoundEnd)
                   // TODO: Here there is some logic missing to end the game if some
                   // number of rounds has been reached.
