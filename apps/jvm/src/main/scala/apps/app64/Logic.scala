@@ -133,6 +133,23 @@ class Logic extends StateMachine[Event, State, View]:
             stateView = stateView
           )
 
-      case RoundEnd => ???
-      case GameEnd  => ???
-      case PlayEnd  => ???
+      case RoundEnd => 
+          View(
+            phaseView = RoundEnding,
+            scoreView = state.scores,
+            stateView = stateView
+          )
+
+      case GameEnd  => 
+          View(
+            phaseView = GameEnding,
+            scoreView = state.scores,
+            stateView = stateView
+          )
+
+      case PlayEnd  => 
+          View(
+            phaseView = PlayEnding(state.hands(userId)),
+            scoreView = state.scores,
+            stateView = stateView
+          )

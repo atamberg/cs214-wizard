@@ -289,6 +289,9 @@ enum PhaseView derives ReadWriter:
   case CardSelecting(validHand: Set[(Card, Boolean)])
   case BidSelecting(hand: Hand)
   case Waiting(hand: Hand)
+  case RoundEnding
+  case GameEnding
+  case PlayEnding(hand: Hand)
 
 
 extension [K,V](m: Map[K,V])
