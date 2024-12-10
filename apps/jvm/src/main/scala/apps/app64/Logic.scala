@@ -59,7 +59,11 @@ class Logic extends StateMachine[Event, State, View]:
         event match
           case PlayCard(card) =>
             // The event executes by adding a card for the current player to the trick
-            val nextPlayerState = state.playCard(userId, card)
+            // If there is no suit yet, change current suit to the suit of this card
+            val nextPlayerState = if state.currentSuit != Suit.None then 
+              state.playCard(userId, card)
+            else 
+              state.playCard(userId, card).copy(currentSuit = card.suit)
             Seq(
               Render(nextPlayerState),
               Pause(500),
@@ -100,7 +104,7 @@ class Logic extends StateMachine[Event, State, View]:
         // current player gets selecting view if they haven't chosen their bid yet
         if state.players.head == userId && !state.stakes.keySet(userId) then
           View(
-            phaseView = BidSelecting,
+            phaseView = BidSelecting(state.hands(userId)),
             scoreView = state.scores,
             stateView = stateView
           )
