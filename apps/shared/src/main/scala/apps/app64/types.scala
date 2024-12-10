@@ -23,19 +23,22 @@ object Suit:
   val allSuits: Array[Suit] = Suit.values.filterNot(_==Suit.None)
   def random = allSuits(between(0, allSuits.size))
 
-
 object Deck:
-  private def shuffledCards: Set[Card] = shuffle:
-    (for 
+  lazy val orderedDeck = {
+    for
       suit <- Suit.allSuits
       value <- (1 to 15)
-    yield
-      Card(suit, value)).toSet
+    yield Card(suit, value)
+  }.toSet
+
+  lazy val size = orderedDeck.size
+  
+  private def shuffledCards: Set[Card] = shuffle(orderedDeck)
 
   def dealNCards(n: Int, players: Vector[UserId]): Map[UserId, Hand] =
     require(
-      shuffledCards.size/players.size >= n,
-      s"shuffledCards.size / players.size < n"
+      size/players.size >= n,
+      s"orderedDeck.size / players.size < n"
     )
     var mutCards = shuffledCards
     players.map(_ -> {
