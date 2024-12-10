@@ -5,7 +5,7 @@ val commonSettings = Seq(
 
 /// Dependencies
 
-val webappLibRepo = uri("https://gitlab.epfl.ch/cs214/ul2024/webapp-lib.git#v0.8.0")
+val webappLibRepo = uri("https://gitlab.epfl.ch/cs214/ul2024/webapp-lib.git#v0.15.0")
 
 lazy val client: ProjectReference = ProjectRef(webappLibRepo, "webappLibJS")
 lazy val server: ProjectReference = ProjectRef(webappLibRepo, "webappLibJVM")
