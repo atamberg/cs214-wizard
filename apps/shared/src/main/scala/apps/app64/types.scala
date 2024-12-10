@@ -234,7 +234,11 @@ case class State(
 
   def nextPlay: State = 
     val nextStakes = updateStakes()
-    val winner: UserId = nextStakes.filter((u, s) => (s.score - stakes(u).score) > 0).head._1
+    val winnerOption = nextStakes.filter((u, s) => (s.score - stakes(u).score) > 0).headOption
+    val winner = winnerOption match
+      case None => players.head // TODO: this is temporary
+      case Some(value) => value._1
+
     withPlayerNext(winner).copy(
       stakes = nextStakes,
       cardsPlayed = Vector(),
