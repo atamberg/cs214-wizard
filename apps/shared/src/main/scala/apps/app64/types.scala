@@ -233,18 +233,18 @@ case class State(
       .filter(_.suit == currentSuit)
       .filterNot(_.isWizard)
       .map(_.value)
-      .max
+      .maxOption
 
     val highestCurrentTrump = cardsPlayed.map(_._2)
       .filter(_.suit == trumpSuit)
       .filterNot(_.isWizard)
       .map(_.value)
-      .max
+      .maxOption
 
     card.isWizard
     || card.isJester
-    || (card.suit == currentSuit && card.value > highestCurrentSuit)
-    || (card.suit == trumpSuit && card.value > highestCurrentTrump)
+    || (card.suit == currentSuit && card.value > highestCurrentSuit.getOrElse(0))
+    || (card.suit == trumpSuit && card.value > highestCurrentTrump.getOrElse(0))
   end isValid
 
   def getValidHand(userId: UserId): Set[(Card, Boolean)] = 
@@ -252,7 +252,8 @@ case class State(
         card <- hands(userId)
       yield
         (card, isValid(card)))
-    if validCards.isEmpty then hands(userId).map((_, true))
+    if validCards.isEmpty || currentSuit == Suit.None then 
+      hands(userId).map((_, true))
     else validCards
   end getValidHand
 
@@ -286,7 +287,7 @@ case class StateView(
 
 enum PhaseView derives ReadWriter:
   case CardSelecting(validHand: Set[(Card, Boolean)])
-  case BidSelecting
+  case BidSelecting(hand: Hand)
   case Waiting(hand: Hand)
 
 
