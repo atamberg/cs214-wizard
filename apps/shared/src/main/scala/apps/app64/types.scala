@@ -181,7 +181,7 @@ case class State(
     val newHands = hands.dropAtKey(id, card)
     val nextCardsPlayed = cardsPlayed :+ (id, card)
     val prevState = copy(cardsPlayed = nextCardsPlayed, hands = newHands)
-    if currentSuit == Suit.None then
+    if currentSuit == Suit.None && !(card.isWizard || card.isJester) then
       prevState.copy(currentSuit = card.suit)
     else
       prevState
