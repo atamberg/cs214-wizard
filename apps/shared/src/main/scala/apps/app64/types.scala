@@ -225,7 +225,7 @@ case class State(
       else if card.isJester then
         player -> (
           stakes(player).copy(
-            (stakes(player).tricksWon + (if otherCards.forall(_.isJester) && cardsPlayed.head == card then 1 else 0))
+            (stakes(player).tricksWon + (if otherCards.forall(_.isJester) && (cardsPlayed.head._1 == player) then 1 else 0))
           ,stakes(player).bid)
       )
       else 
