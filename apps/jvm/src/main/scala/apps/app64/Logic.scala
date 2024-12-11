@@ -59,20 +59,15 @@ class Logic extends StateMachine[Event, State, View]:
             lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(3000))
             lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState), Pause(60000))
 
-            if playCardState.cardsPlayed.size != playCardState.players.size then
+            if playCardState.cardsPlayed.size != playCardState.players.size then //NOT all players have played a card
               // next player's turn
               playCardRender :+ Render(playCardState.nextPlayer)
+            else if !playCardState.hands.forall(e => e._2.isEmpty) then // NOT all cards in hand played
+              playEndRender :+ Render(playEndState.nextPlay)
+            else if playCardState.round < Deck.size / playCardState.players.size then // NOT maximum number of rounds reached
+              roundEndRender :+ Render(roundEndState.nextRound)
             else
-              if playCardState.round + 1 > Deck.size / playCardState.players.size then
-                // maximum number of rounds reached
-                gameEndRender
-              else if playCardState.hands.forall(e => e._2.isEmpty) then
-                // all cards in hand played
-                roundEndRender :+ Render(roundEndState.nextRound)
-              else
-                // all players have played a card
-                playEndRender :+ Render(playEndState.nextPlay)
-
+              gameEndRender
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
 
