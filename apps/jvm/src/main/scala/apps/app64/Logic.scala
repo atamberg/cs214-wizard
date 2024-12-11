@@ -49,31 +49,26 @@ class Logic extends StateMachine[Event, State, View]:
           case PlayCard(card) =>
             // The event executes by adding a card for the current player to the trick
             // If there is no suit yet, change current suit to the suit of this card
-            val nextPlayerState = state.playCard(userId, card) // sets suit if needed
-            val secondState = {
-              if nextPlayerState.round + 1 > Deck.size / nextPlayerState.players.size then // If maximum number of rounds reached
-                nextPlayerState.nextPhase(GameEnd)
-              else if nextPlayerState.hands.forall(e => e._2.isEmpty) then
-                nextPlayerState.nextPhase(RoundEnd)
-              else if nextPlayerState.cardsPlayed.size == nextPlayerState.players.size then
-                nextPlayerState.nextPhase(PlayEnd)
-              else
-                nextPlayerState
-            }
-            val thirdState = {
-              secondState.phase match
-                case Play => secondState.nextPlayer
-                case PlayEnd => secondState.nextPlay
-                case RoundEnd => secondState.nextRound
-                case _ => secondState
-            }
-            Seq(
-              Render(nextPlayerState),
-              Pause(500),
-              Render(secondState),
-              Pause(1000),
-              Render(thirdState)
-            )
+            val playCardState = state.playCard(userId, card) // sets suit if needed
+            lazy val playEndState = playCardState.nextPhase(PlayEnd).computeWinner
+            lazy val roundEndState = playEndState.nextPhase(RoundEnd)
+            lazy val gameEndState = roundEndState.nextPhase(GameEnd)
+
+            lazy val playCardRender = Seq(Render(playCardState), Pause(500))
+            lazy val playEndRender = playCardRender ++ Seq(Render(playEndState), Pause(500))
+            lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(500))
+            lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState), Pause(500))
+
+            if playCardState.round + 1 > Deck.size / playCardState.players.size then
+            // If maximum number of rounds reached
+              gameEndRender
+            else if playCardState.hands.forall(e => e._2.isEmpty) then
+              roundEndRender :+ Render(roundEndState.nextRound)
+            else if playCardState.cardsPlayed.size == playCardState.players.size then
+              playEndRender :+ Render(roundEndState.nextPlay)
+            else
+              playCardRender :+ Render(playCardState.nextPlayer)
+
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
 
