@@ -87,7 +87,8 @@ class Logic extends StateMachine[Event, State, View]:
       cardsPlayed = state.cardsPlayed,
       trumpSuit   = state.trumpSuit,
       currentSuit = state.currentSuit,
-      round       = state.round
+      round       = state.round,
+      trickWinner = state.trickWinner
     )
 
     state.phase match
@@ -140,7 +141,9 @@ class Logic extends StateMachine[Event, State, View]:
 
       case PlayEnd  => 
           View(
-            phaseView = PlayEnding(state.hands(userId)),
+            phaseView = PlayEnding(
+              state.hands(userId), state.trickWinner
+            ),
             scoreView = state.scores,
             stateView = stateView
           )

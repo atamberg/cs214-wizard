@@ -55,7 +55,9 @@ class GameStateTest extends AnyFlatSpec with Matchers:
         Vector(),
         Suit.None,
         Suit.None,
-        0))
+        0,
+        "player1"
+      ))
 
     val written = write(view)
     val valueRead = read[View](written)
@@ -102,7 +104,8 @@ class GameStateTest extends AnyFlatSpec with Matchers:
     state1.cardsPlayed,
     state1.trumpSuit,
     state1.currentSuit,
-    state1.round
+    state1.round,
+    state1.trickWinner
     )
 
 
