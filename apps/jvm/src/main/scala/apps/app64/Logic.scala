@@ -54,20 +54,24 @@ class Logic extends StateMachine[Event, State, View]:
             lazy val roundEndState = playEndState.nextPhase(RoundEnd)
             lazy val gameEndState = roundEndState.nextPhase(GameEnd)
 
-            lazy val playCardRender = Seq(Render(playCardState), Pause(500))
-            lazy val playEndRender = playCardRender ++ Seq(Render(playEndState), Pause(500))
-            lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(500))
-            lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState), Pause(500))
+            lazy val playCardRender = Seq(Render(playCardState), Pause(200))
+            lazy val playEndRender = playCardRender ++ Seq(Render(playEndState), Pause(1500))
+            lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(3000))
+            lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState), Pause(60000))
 
-            if playCardState.round + 1 > Deck.size / playCardState.players.size then
-            // If maximum number of rounds reached
-              gameEndRender
-            else if playCardState.hands.forall(e => e._2.isEmpty) then
-              roundEndRender :+ Render(roundEndState.nextRound)
-            else if playCardState.cardsPlayed.size == playCardState.players.size then
-              playEndRender :+ Render(roundEndState.nextPlay)
-            else
+            if playCardState.cardsPlayed.size != playCardState.players.size then
+              // next player's turn
               playCardRender :+ Render(playCardState.nextPlayer)
+            else
+              if playCardState.round + 1 > Deck.size / playCardState.players.size then
+                // maximum number of rounds reached
+                gameEndRender
+              else if playCardState.hands.forall(e => e._2.isEmpty) then
+                // all cards in hand played
+                roundEndRender :+ Render(roundEndState.nextRound)
+              else
+                // all players have played a card
+                playEndRender :+ Render(roundEndState.nextPlay)
 
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
