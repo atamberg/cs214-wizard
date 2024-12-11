@@ -151,4 +151,39 @@ class EventTest extends AnyFlatSpec with Matchers {
     bidResult.failed.get shouldBe an[Exception]
     playCardResult.failed.get shouldBe an[Exception]
   }
+
+  it should "be possible to play cards after initial jester play" in {
+    val jester = Card(Suit.Hearts, 1)
+    val hands0 = Map(
+        UID0 -> Set(jester, Card(Suit.Spades, 5)),
+        UID1 -> Set(Card(Suit.Hearts, 2), Card(Suit.Hearts, 3)),
+      )
+    val stakes0 = Map(
+      UID0 -> Stake(0,1),
+      UID1 -> Stake(0,1)
+      )
+
+    val testingState = createInitialState(Vector(UID0, UID1)).copy(
+      round = 2,
+      hands = hands0,
+      phase = Phase.Play,
+      stakes = stakes0
+    )
+    
+    val logic = new Logic()
+
+    val playJester = Event.PlayCard(jester)
+    val transitionSequence = logic.transition(testingState)(UID0, playJester)
+    val crucialState = transitionSequence.get.last.asInstanceOf[Action.Render[State]].st
+
+    val playAnything = Event.PlayCard(Card(Suit.Hearts, 2))
+    val endSequence = logic.transition(crucialState)(UID1, playAnything)
+
+    val endState0 = endSequence.get.head.asInstanceOf[Action.Render[State]].st
+    val endState1 = endSequence.get.last.asInstanceOf[Action.Render[State]].st
+
+    endState0.cardsPlayed shouldBe Vector((UID0, jester), (UID1, Card(Suit.Hearts, 2)))
+    endState1.cardsPlayed shouldBe Vector((UID0, jester), (UID1, Card(Suit.Hearts, 2)))
+
+  }
 }
