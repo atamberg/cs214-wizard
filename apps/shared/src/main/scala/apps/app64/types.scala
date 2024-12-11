@@ -208,7 +208,7 @@ case class State(
       playerQueue = playerQueue.tail :+ playerQueue.head
     copy(players = playerQueue)
 
-  private def updateStakes(): Map[UserId, Stake]  = 
+  private def computeTricks: Map[UserId, Stake]  =
     require(
       phase == Phase.PlayEnd,
       s"phase = $phase is not PlayEnd"
@@ -232,17 +232,19 @@ case class State(
       )
       ).toMap 
 
-
-  def nextPlay: State = 
-    val nextStakes = updateStakes()
+  def computeWinner: State =
+    val nextStakes = computeTricks
     val winner = nextStakes.filter((u, s) => (s.tricksWon - stakes(u).tricksWon) > 0).head._1
-
-    withPlayerNext(winner).copy(
+    copy(
       stakes = nextStakes,
+      trickWinner = winner
+    )
+
+  def nextPlay: State =
+    withPlayerNext(trickWinner).copy(
       cardsPlayed = Vector(),
       currentSuit = Suit.None,
       phase = Phase.Play,
-      trickWinner = winner
       )
 
   private def updateScores(): Map[UserId, Int] = 
