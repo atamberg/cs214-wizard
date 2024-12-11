@@ -139,7 +139,8 @@ object State:
       trumpSuit   = Suit.Spades,
       currentSuit = Suit.None,
       round       = 1,
-      phase       = Phase.Bid
+      phase       = Phase.Bid,
+      trickWinner = ""
     )
 
 case class State(
@@ -151,7 +152,8 @@ case class State(
   trumpSuit:   Suit,
   currentSuit: Suit,
   round:       Int,
-  phase:       Phase
+  phase:       Phase,
+  trickWinner: UserId
 ):
   lazy val allReady = players.forall(stakes.keySet.contains)
   // TODO: Check that allReady get uninitialized after a copy! We don't want the old ready to persist in the next state!
@@ -219,8 +221,7 @@ case class State(
       if !card.isWizard then
       player -> (
         stakes(player).copy(
-          (stakes(player).tricksWon + card.scoreAgainst(otherCards, trumpSuit, currentSuit))
-          ,stakes(player).bid)
+          (stakes(player).tricksWon + card.scoreAgainst(otherCards, trumpSuit, currentSuit)),stakes(player).bid)
       )
       else 
         val cardIndex = cardsPlayed.indexOf((player, card))
@@ -240,7 +241,8 @@ case class State(
       stakes = nextStakes,
       cardsPlayed = Vector(),
       currentSuit = Suit.None,
-      phase = Phase.Play
+      phase = Phase.Play,
+      trickWinner = winner
       )
 
   private def updateScores(): Map[UserId, Int] = 
@@ -324,7 +326,8 @@ case class StateView(
   cardsPlayed: Vector[(UserId, Card)],
   trumpSuit:   Suit,
   currentSuit: Suit,
-  round:       Int
+  round:       Int,
+  trickWinner: UserId
 ) derives ReadWriter
 
 
@@ -332,9 +335,9 @@ enum PhaseView derives ReadWriter:
   case CardSelecting(validHand: Set[(Card, Boolean)])
   case BidSelecting(hand: Hand)
   case Waiting(hand: Hand)
+  case PlayEnding(hand: Hand, trickWinner: UserId)
   case RoundEnding
   case GameEnding
-  case PlayEnding(hand: Hand)
 
 
 extension [K,V](m: Map[K,V])

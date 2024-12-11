@@ -36,7 +36,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     val scores = view.scoreView
     val StateView(
       players, stakes, cardsPlayed,
-      trumpSuit, currentsuit, round
+      trumpSuit, currentsuit, round, trickWinner
     ) = view.stateView
 
     view.phaseView match
@@ -106,7 +106,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
           renderScoreBoard(scores)
         )
 
-      case PlayEnding(hand) =>
+      case PlayEnding(hand, trickWinner) =>
         frag(
           div(
             id := "players-grid",
@@ -115,15 +115,27 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
             div(
               id  := "cards",
-              cls := "congrats",
+              cls := "play-end",
 
-              s"${userId.capitalize} scored the trick!"
+              s"${trickWinner.capitalize} scored the trick!"
             )
           )
         )
 
       case RoundEnding =>
         frag(
+          div(
+            id := "players-grid",
+
+            renderPlayers(userId, players, stakes, Set())(div()),
+
+            div(
+              id  := "cards",
+              cls := "round-end",
+
+              "TODO"
+            )
+          )
         )
 
       case GameEnding =>
@@ -351,7 +363,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   padding: 1rem .7rem;
     | }
     |
-    | .congrats {
+    | .play-end, .round-end {
     |   background-color: #ffb726;
     |   font-size: 1.2rem;
     | }
