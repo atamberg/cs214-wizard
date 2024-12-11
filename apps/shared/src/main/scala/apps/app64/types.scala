@@ -5,9 +5,9 @@ import cs214.webapp.UserId
 import upickle.default.*
 
 case class Stake(tricksWon: Int, bid: Int) derives ReadWriter:
-  // TODO: Check values against ruleset, am too lazy to look them up
-  lazy val score = if tricksWon == bid then 
-      bid * 10 + 10 else math.abs(tricksWon - bid) * (-10)
+  def score =
+    if tricksWon == bid then 20 + (tricksWon * 10)
+    else math.abs(tricksWon - bid) * (-10)
 
 enum Suit derives ReadWriter:
   case Hearts, Diamonds, Clubs, Spades, None;
@@ -136,7 +136,7 @@ object State:
       cardsPlayed = Vector(),
       hands       = clients.map(_ -> Set()).toMap, 
       scores      = clients.map(_ -> 0).toMap,
-      trumpSuit   = Suit.Spades,
+      trumpSuit   = Suit.random,
       currentSuit = Suit.None,
       round       = 1,
       phase       = Phase.Bid,
