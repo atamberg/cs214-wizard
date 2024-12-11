@@ -195,7 +195,7 @@ case class State(
   def nextPlayer: State =
     copy(players = players.tail :+ players.head)
 
-  private def withPlayerNext(user: UserId): State =
+  def withPlayerNext(user: UserId): State =
     // TODO: I think using mutability is usefull here, needs proper testing obviously
     require(
       players.contains(user),
