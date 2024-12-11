@@ -213,7 +213,7 @@ case class State(
     )
     (for
       (player, card) <- cardsPlayed
-      otherCards = cardsPlayed.dropWhile(_ != (player, card)).map(_._2)
+      otherCards = cardsPlayed.filter(_ != (player, card)).map(_._2)
     yield
       // TODO: This is missing some jester edge cases
       if !card.isWizard then
@@ -234,10 +234,7 @@ case class State(
 
   def nextPlay: State = 
     val nextStakes = updateStakes()
-    val winnerOption = nextStakes.filter((u, s) => (s.score - stakes(u).score) > 0).headOption
-    val winner = winnerOption match
-      case None => players.head // TODO: this is temporary
-      case Some(value) => value._1
+    val winner = nextStakes.filter((u, s) => (s.tricksWon - stakes(u).tricksWon) > 0).head._1
 
     withPlayerNext(winner).copy(
       stakes = nextStakes,

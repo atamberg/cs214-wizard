@@ -344,5 +344,23 @@ class GameStateTest extends AnyFlatSpec with Matchers:
     
     validHand shouldBe Set()
   }
+
+  "nextPlay" should "always determine a winner" in {
+    val s1 = state1.copy(
+      stakes = state1.players.map(p => (p -> Stake(0,1))).toMap,
+      cardsPlayed = Vector((UID0, Card(Suit.Hearts, 10)), (UID1, Card(Suit.Diamonds, 5)), (UID2, Card(Suit.Hearts, 11))),
+      currentSuit = Suit.Hearts,
+      phase = Phase.PlayEnd
+    )
+    val exp = s1.copy(
+      stakes = s1.stakes.map((u: String,s: Stake) => 
+          if u == UID2 then (u,Stake(s.tricksWon+1, s.bid)) else (u,s)),
+      cardsPlayed = Vector(),
+      currentSuit = Suit.None,
+      phase = Phase.Play
+      )
+    s1.nextPlay.stakes `shouldBe` exp.stakes
+  }
+
 end GameStateTest
 
