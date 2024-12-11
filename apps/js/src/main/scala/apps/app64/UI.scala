@@ -133,7 +133,12 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
               id  := "cards",
               cls := "round-end",
 
-              "TODO"
+              for
+                player <- players.sorted
+                delta = stakes(player).score
+              yield div(
+                s"$player: ${if delta >= 0 then '+' else '-'}${math.abs(delta)}"
+              )
             )
           )
         )
@@ -356,16 +361,16 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   grid-row: 2;
     |   grid-column: 2;
     |
+    |   display: block;
     |   border: 1px dashed black;
     |   border-radius: 7px;
-    |   grid-template-rows: 1fr;
     |   text-align: center;
     |   padding: 1rem .7rem;
     | }
     |
     | .play-end, .round-end {
     |   background-color: #ffb726;
-    |   font-size: 1.2rem;
+    |   font-size: 1.3rem;
     | }
     |
     | #card-grid {
