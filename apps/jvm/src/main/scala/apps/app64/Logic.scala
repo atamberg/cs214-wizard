@@ -71,7 +71,7 @@ class Logic extends StateMachine[Event, State, View]:
                 roundEndRender :+ Render(roundEndState.nextRound)
               else
                 // all players have played a card
-                playEndRender :+ Render(roundEndState.nextPlay)
+                playEndRender :+ Render(playEndState.nextPlay)
 
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
