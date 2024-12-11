@@ -73,19 +73,15 @@ class EventTest extends AnyFlatSpec with Matchers {
     val playerIds = USER_IDS
     val initialState = createInitialState(playerIds)
     val logic = new Logic()
-    println()
     // First, place bids to move to Play phase
     val bidState = playerIds.foldLeft(initialState) { (state, playerId) => 
 
       logic.transition(state)(playerId, Event.AnnounceBid(2)).get.last.asInstanceOf[Action.Render[State]].st
     }
-    println(bidState.stakes)
-    println(bidState.allReady)
     // Get a valid card from the first player's hand
     val firstPlayer = bidState.players.head
     val cardToPlay = bidState.hands(firstPlayer).head
-    print(cardToPlay)
-    print(bidState.phase)
+
     val playCardResult = logic.transition(bidState)(firstPlayer, Event.PlayCard(cardToPlay))
 
     playCardResult shouldBe a [Success[?]]
