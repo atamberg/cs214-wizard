@@ -119,7 +119,9 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
               s"${trickWinner.capitalize} scored the trick!"
             )
-          )
+          ),
+
+          renderScoreBoard(scores)
         )
 
       case RoundEnding =>
@@ -140,12 +142,18 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
                 s"$player: ${if delta >= 0 then '+' else '-'}${math.abs(delta)}"
               )
             )
-          )
+          ),
+
+          renderScoreBoard(scores)
         )
 
       case GameEnding =>
         frag(
+          div(
+            id := "end-game",
 
+            renderScoreBoard(scores, true, userId)
+          )
         )
   end renderView
 
@@ -159,7 +167,6 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     currUserView: TypedTag[T],
     handRender:  Boolean = true
   ) =
-    // TODO: maybe we should sort differently
     for player <- players.sorted yield div(
       cls := "player",
 
@@ -173,7 +180,10 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
         cls := "player-image",
         if player == players.head then cls := "current-player" else frag(),
         if player == userId then cls:= "current-user" else frag(),
-        player.head.toUpper.toString
+        player
+          .split(" ")
+          .foldLeft("")((acc, word) => acc + word.head)
+          .toUpperCase()
       ),
 
       div(
@@ -195,8 +205,9 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     trumpSuit: Suit, 
     cardsPlayed: Vector[(UserId, Card)]
   ) =
-    // TODO: maybe we should sort differently
-    val cardsSorted: Vector[Card] = 
+    // BUG: cards aren't rendered in correc order, if a player maykes a trick
+    //      who isn't the top left player in the grid
+    val cardsSorted: Vector[Card] =
       cardsPlayed.sortBy(_._1).map(_._2)
     div(
       id := "cards",
@@ -239,15 +250,45 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     )
 
 
-  def renderScoreBoard(scores: Map[UserId, Int]) =
+  def renderScoreBoard(
+    scores: Map[UserId, Int],
+    gameEnd: Boolean = false,
+    userId: UserId = ""
+  ) =
+    val scoresSorted = scores.toList.sortBy(_._2).reverse
+    val winner = scoresSorted.head._1
     div(
       id := "scoreboard",
+
+      if gameEnd then h1(
+        s"Game Over - You ${if userId == winner then "won! 👑" else "lost!"}"
+      )
+      else frag(),
+
       h2("Scoreboard"),
+
       div(
-        (for (player, score) <- scores yield div(
+        (for (player, score) <- scoresSorted yield div(
           cls := "scoreboard-item",
-          s"${player.capitalize}: $score"
-        )).toVector
+          span(s"${player.capitalize}:"),
+          span(s"$score"), // BUG: scores are all zero for some reason
+          if gameEnd && player == winner then span("👑") else frag()
+        )).toVector,
+
+        if gameEnd then div(
+          cls := "scoreboard-item",
+          id  := "end-game-buttons",
+
+          input(
+            tpe   := "button",
+            value := "Play Again"
+          ),
+          input(
+            tpe   := "button",
+            value := "Quit"
+          )
+        )
+        else frag()
       )
     )
   end renderScoreBoard
@@ -257,6 +298,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     """
     | .h2 {
     |   padding: 1rem;
+    |   font-size: 1.3rem;
     | }
     |
     | body {
@@ -342,7 +384,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   margin: .7rem 2rem;
     |   background-color: #80d4ff;
     |   border-radius: 7px;
-    |   font-size: 1.5rem;
+    |   font-size: 1.3rem;
     | }
     |
     | .player-image.current-player {
@@ -366,11 +408,12 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   border-radius: 7px;
     |   text-align: center;
     |   padding: 1rem .7rem;
+    |   align-content: center;
     | }
     |
-    | .play-end, .round-end {
+    | .play-end, .round-end, .round-end div {
     |   background-color: #ffb726;
-    |   font-size: 1.3rem;
+    |   font-size: 1.1rem;
     | }
     |
     | #card-grid {
@@ -395,12 +438,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   font-size: 2rem;
     | }
     |
-    | #scoreboard > * {
-    |   margin: 1rem 2rem;
-    | }
-    |
     | #scoreboard h2 {
-    |   font-size: 1.5rem;
     |   border-bottom: 2px black solid;
     | }
     |
@@ -410,45 +448,37 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   align-items: center;
     |   grid-template-rows: 1fr;
     |   grid-template-columns: 3fr 2fr;
-    |
+    |   gap: 1rem;
+    |   width: 50%;
     | }
     |
     | #end-game {
-    |   background-color: #6e6e6e;
-    |   color: #c0c0c0;
-    | }
-    |
-    | #end-game .player-image {
-    |   background-color: #333333;
-    | }
-    |
-    | #end-game-splash {
     |   color: black;
     |   background-color: #f0f0f0;
-    |   position: fixed;
-    |   top: 60%;
-    |   left: 30%;
-    |   transform: translate(-34%, -65%);
-    |   width: 40%;
-    |   height: 60%;
     |
     |   border-radius: 7px;
     | }
     |
-    | #end-game-splash h2 {
-    |   font-size: 2.3rem;
+    | #end-game .scoreboard-item {
+    |   grid-template-columns: 3fr 2fr 1fr;
+    |   width: 60%;
     | }
     |
-    | #end-game-splash div > div {
+    | #end-game h1 {
+    |   font-size: 3em;
+    |   margin: 2rem 0; 
+    | }
+    |
+    | #end-game h2 {
+    |   font-size: 1.3rem;
+    | }
+    |
+    | #end-game div > div {
     |   margin-bottom: 1.3rem;
     | }
     |
-    | #end-game-splash span {
-    |   font-size: 1.4rem;
-    | }
-    |
-    | #end-game-splash #scoreboard > div > div {
-    |   grid-template-columns: 3fr 2fr 1fr;
+    | #end-game span {
+    |   font-size: .9rem;
     | }
     |
     | #crown {
@@ -468,6 +498,9 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   border-radius: 7px;
     | }
     |
+    | input[type="button"] {
+    |   cursor: pointer;
+    | }
     """.stripMargin
 
   end css
