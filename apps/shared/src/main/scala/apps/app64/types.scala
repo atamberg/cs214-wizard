@@ -113,14 +113,14 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
       case _              => "🂠"
 
   def scoreAgainst(others: Vector[Card], trump: Suit, current: Suit): Int =
-    if this.suit == current && others.forall(c => 
+    if !others.exists(_.isWizard) && (this.suit == current && others.forall(c => 
           c.suit != trump && (
           c.suit != this.suit  || 
           c.value < this.value )
           )
     || this.suit == trump && others.forall(c => 
           c.suit != this.suit  || 
-          c.value < this.value)
+          c.value < this.value))
        then 
        1
     else 
@@ -217,11 +217,16 @@ case class State(
       (player, card) <- cardsPlayed
       otherCards = cardsPlayed.filter(_ != (player, card)).map(_._2)
     yield
-      // TODO: This is missing some jester edge cases
-      if !card.isWizard then
+      if !(card.isWizard || card.isJester) then
       player -> (
         stakes(player).copy(
           (stakes(player).tricksWon + card.scoreAgainst(otherCards, trumpSuit, currentSuit)),stakes(player).bid)
+      )
+      else if card.isJester then
+        player -> (
+          stakes(player).copy(
+            (stakes(player).tricksWon + (if otherCards.forall(_.isJester) && cardsPlayed.head == card then 1 else 0))
+          ,stakes(player).bid)
       )
       else 
         val cardIndex = cardsPlayed.indexOf((player, card))
