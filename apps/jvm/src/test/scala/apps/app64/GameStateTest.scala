@@ -4,6 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import upickle.default.*
 import cs214.webapp.server.StateMachine
+import cs214.webapp.UserId
 
 class GameStateTest extends AnyFlatSpec with Matchers:
   // Test Suit Enum Conversions
@@ -328,7 +329,6 @@ class GameStateTest extends AnyFlatSpec with Matchers:
       ),
       hands = Map(UID0 -> hand)
     )
-    print(state.hands.get(UID0))
     val validHand = state.getValidHand(UID0)
     
     validHand shouldBe Set(
@@ -348,22 +348,155 @@ class GameStateTest extends AnyFlatSpec with Matchers:
     validHand shouldBe Set()
   }
 
-  "nextPlay" should "always determine a winner" in {
-    val s1 = state1.copy(
-      stakes = state1.players.map(p => (p -> Stake(0,1))).toMap,
-      cardsPlayed = Vector((UID0, Card(Suit.Hearts, 10)), (UID1, Card(Suit.Diamonds, 5)), (UID2, Card(Suit.Hearts, 11))),
+
+  def createTestStateForNextPlay(
+  currentSuit: Suit = Suit.None, 
+  trumpSuit: Suit = Suit.None, 
+  cardsPlayed: Vector[(UserId, Card)] = Vector.empty,
+  players: Vector[UserId] = Vector(UID0, UID1, UID2),
+): State = 
+  State.defaultState(USER_IDS).copy(
+    players = players,
+    cardsPlayed = cardsPlayed,
+    trumpSuit = trumpSuit,
+    currentSuit = currentSuit,
+    phase = Phase.PlayEnd,
+  )
+
+  "nextPlay" should "determine a winner and update stakes correctly" in {
+    val initialStakes = Map(
+      UID0 -> Stake(0, 3),
+      UID1 -> Stake(0, 2),
+      UID2 -> Stake(0, 4)
+    )
+    
+    val s1 = createTestStateForNextPlay(
       currentSuit = Suit.Hearts,
+      trumpSuit = Suit.Diamonds,
+      cardsPlayed = Vector(
+        (UID0, Card(Suit.Hearts, 6)), 
+        (UID1, Card(Suit.Diamonds, 7)), 
+        (UID2, Card(Suit.Hearts, 11))
+      )
+    ).copy(
+      stakes = initialStakes,
       phase = Phase.PlayEnd
     )
-    val exp = s1.copy(
-      stakes = s1.stakes.map((u: String,s: Stake) => 
-          if u == UID2 then (u,Stake(s.tricksWon+1, s.bid)) else (u,s)),
-      cardsPlayed = Vector(),
-      currentSuit = Suit.None,
-      phase = Phase.Play
+    val winnerState = s1.computeWinner
+    val nextState = winnerState.nextPlay
+    // Verify the winner (UID2) gets their tricks won incremented
+    nextState.stakes(UID2).tricksWon shouldBe 0
+    nextState.stakes(UID0).tricksWon shouldBe 0
+    nextState.stakes(UID1).tricksWon shouldBe 1
+    
+    // Verify other state changes
+    nextState.phase shouldBe Phase.Play
+    nextState.cardsPlayed shouldBe empty
+    nextState.currentSuit shouldBe Suit.None
+    nextState.players.head shouldBe UID1  // Winner becomes first player
+  }
+
+  // Additional tests for nextPlay method
+  it should "handle complex card interactions with wizards and trump suit" in {
+    val initialStakes = Map(
+      UID0 -> Stake(0, 3),
+      UID1 -> Stake(0, 2),
+      UID2 -> Stake(0, 4)
+    )
+    
+    val s1 = createTestStateForNextPlay(
+      currentSuit = Suit.Hearts,
+      trumpSuit = Suit.Diamonds,
+      cardsPlayed = Vector(
+        (UID0, Card(Suit.Hearts, 10)),     // Normal heart card 
+        (UID1, Card(Suit.None, 15)),       // Wizard 
+        (UID2, Card(Suit.Diamonds, 5))     // Lower trump card
       )
-    s1.nextPlay.stakes `shouldBe` exp.stakes
+    ).copy(
+      stakes = initialStakes,
+      phase = Phase.PlayEnd
+    )
+    
+    val winnerState = s1.computeWinner
+    val nextState = winnerState.nextPlay
+    
+    // Wizard beats all other cards, so UID1 should win
+    nextState.stakes(UID1).tricksWon shouldBe 1
+    nextState.stakes(UID0).tricksWon shouldBe 0
+    nextState.stakes(UID2).tricksWon shouldBe 0
+    
+    nextState.phase shouldBe Phase.Play
+    nextState.cardsPlayed shouldBe empty
+    nextState.currentSuit shouldBe Suit.None
+    nextState.players.head shouldBe UID1  // Wizard player becomes first player
+  }
+
+  it should "handle a scenario with multiple special cards" in {
+    val initialStakes = Map(
+      UID0 -> Stake(0, 3),
+      UID1 -> Stake(0, 2),
+      UID2 -> Stake(0, 4)
+    )
+    
+    val s1 = createTestStateForNextPlay(
+      currentSuit = Suit.Hearts,
+      trumpSuit = Suit.Spades,
+      cardsPlayed = Vector(
+        (UID0, Card(Suit.None, 1)),        // Jester 
+        (UID1, Card(Suit.Spades, 10)),     // Trump card
+        (UID2, Card(Suit.None, 15))        // Wizard
+      )
+    ).copy(
+      stakes = initialStakes,
+      phase = Phase.PlayEnd
+    )
+    
+    val winnerState = s1.computeWinner
+    val nextState = winnerState.nextPlay
+    
+    // Wizard beats all, so UID2 should win
+    nextState.stakes(UID2).tricksWon shouldBe 1
+    nextState.stakes(UID0).tricksWon shouldBe 0
+    nextState.stakes(UID1).tricksWon shouldBe 0
+    
+    nextState.phase shouldBe Phase.Play
+    nextState.cardsPlayed shouldBe empty
+    nextState.currentSuit shouldBe Suit.None
+    nextState.players.head shouldBe UID2  // Wizard player becomes first player
+  }
+
+  it should "handle a scenario with no clear winner" in {
+    val initialStakes = Map(
+      UID0 -> Stake(0, 3),
+      UID1 -> Stake(0, 2),
+      UID2 -> Stake(0, 4)
+    )
+    
+    val s1 = createTestStateForNextPlay(
+      currentSuit = Suit.Hearts,
+      trumpSuit = Suit.Hearts,
+      cardsPlayed = Vector(
+        (UID0, Card(Suit.None, 1)),        // Jester 
+        (UID1, Card(Suit.None, 1)),        // Another Jester
+        (UID2, Card(Suit.None, 1))         // Yet another Jester
+      )
+    ).copy(
+      stakes = initialStakes,
+      phase = Phase.PlayEnd
+    )
+    
+    val winnerState = s1.computeWinner
+    val nextState = winnerState.nextPlay
+
+    // When all cards are Jesters, the first player wins
+    nextState.stakes(UID0).tricksWon shouldBe 1
+    nextState.stakes(UID1).tricksWon shouldBe 0
+    nextState.stakes(UID2).tricksWon shouldBe 0
+    
+    nextState.phase shouldBe Phase.Play
+    nextState.cardsPlayed shouldBe empty
+    nextState.currentSuit shouldBe Suit.None
+    nextState.players.head shouldBe UID0  // First player becomes first player
   }
 
 end GameStateTest
-
