@@ -15,9 +15,10 @@ class Logic extends StateMachine[Event, State, View]:
 
   override def wire = apps.app64.Wire
 
-  override def init(clients: Seq[UserId]): State = 
+  override def init(clients: Seq[UserId]): State =
     import Suit.*
     import Phase.*
+    require(clients.size >= 2 && clients.size <= 8, "Game requires 2-8 players!")
     State.defaultState(clients).withNewCards
 
   override def transition(state: State)(
@@ -37,9 +38,7 @@ class Logic extends StateMachine[Event, State, View]:
               Seq(
                 Render(nextBidState),
                 Pause(1000),
-                Render(nextBidState.nextPlayer
-                                   .nextPhase(Play)
-                                   )
+                Render(nextBidState.nextPlayer.nextPhase(Play))
               )
             else Seq(Render(nextBidState.nextPlayer))
           case _ => throw IllegalMoveException("You must bid during the bidding phase!")
@@ -59,12 +58,17 @@ class Logic extends StateMachine[Event, State, View]:
             lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(3000))
             lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState.gameEnded), Pause(60000))
 
-            if playCardState.cardsPlayed.size != playCardState.players.size then //NOT all players have played a card
+            lazy val maxRounds = math.min(WizardsConfig.MAX_ROUNDS, Deck.size / playCardState.players.size)
+
+            if playCardState.cardsPlayed.size != playCardState.players.size then
+            //NOT all players have played a card
               // next player's turn
               playCardRender :+ Render(playCardState.nextPlayer)
-            else if !playCardState.hands.forall(e => e._2.isEmpty) then // NOT all cards in hand played
+            else if !playCardState.hands.forall(e => e._2.isEmpty) then
+            // NOT all cards in hand played
               playEndRender :+ Render(playEndState.nextPlay)
-            else if playCardState.round < Deck.size / playCardState.players.size then // NOT maximum number of rounds reached
+            else if playCardState.round < maxRounds then
+            // NOT maximum number of rounds reached
               roundEndRender :+ Render(roundEndState.nextRound)
             else
               gameEndRender
