@@ -27,7 +27,21 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   override def render(userId: UserId, view: View): Frag =
     frag(
       h2("Wizards - It's basically gambling Jass"),
-      // TODO: add legend for player colors
+      div(
+        id := "legend",
+        div(
+          id := "current-swatch",
+          div(cls := "swatch", ""), span("Current Player")
+        ),
+        div(
+          id := "you-swatch",
+          div(cls := "swatch", ""), span("You")
+        ),
+        div(
+          id := "other-swatch",
+          div(cls := "swatch", ""), span("Other players")
+        )
+      ),
       renderView(userId, view)
     )
 
@@ -525,6 +539,34 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   cursor: pointer;
     | }
     |
+    | #legend {
+    |   display: flex;
+    |   align-items: center;
+    | }
+    |
+    | #legend > div{
+    |   display: flex;
+    |   margin-right: 2.5rem;
+    | }
+    |
+    | .swatch {
+    |   width: 1rem;
+    |   height: 1rem;
+    |   border-radius: 4px;
+    |   margin-right: .2rem
+    | }
+    |
+    | #current-swatch > .swatch {
+    |   background-color: #ff9777;
+    | }
+    |
+    | #you-swatch > .swatch {
+    |   border: 1px dashed black;
+    | }
+    |
+    | #other-swatch > .swatch {
+    |   background-color: #80d4ff;
+    | }
     """.stripMargin
 
   end css
