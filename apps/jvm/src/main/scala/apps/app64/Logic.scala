@@ -58,7 +58,7 @@ class Logic extends StateMachine[Event, State, View]:
             lazy val playCardRender = Seq(Render(playCardState), Pause(200))
             lazy val playEndRender = playCardRender ++ Seq(Render(playEndState), Pause(1500))
             lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(3000))
-            lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState), Pause(60000))
+            lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState.gameEnded), Pause(60000))
 
             if playCardState.cardsPlayed.size != playCardState.players.size then //NOT all players have played a card
               // next player's turn
