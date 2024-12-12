@@ -304,7 +304,7 @@ case class State(
         card <- hands(userId)
       yield
         (card, isValid(card)))
-    if !validCards.exists(_._2) then
+    if !validCards.exists((card, valid) => valid && card.suit == currentSuit && (card.isWizard || card.isJester)) then
       hands(userId).map((_, true))
     else validCards
   end getValidHand
