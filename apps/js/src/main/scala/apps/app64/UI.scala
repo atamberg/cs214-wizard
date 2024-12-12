@@ -59,7 +59,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
             renderCards(trumpSuit, cardsPlayed, players)
           ),
 
-          renderScoreBoard(scores)
+          renderScoreBoard(scores, userId)
         )
 
       case BidSelecting(hand) =>
@@ -85,7 +85,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
             renderCards(trumpSuit, cardsPlayed, players)
           ),
 
-          renderScoreBoard(scores)
+          renderScoreBoard(scores, userId)
         )
 
       case Waiting(hand) =>
@@ -103,7 +103,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
             renderCards(trumpSuit, cardsPlayed, players)
           ),
 
-          renderScoreBoard(scores)
+          renderScoreBoard(scores, userId)
         )
 
       case PlayEnding(hand, trickWinner) =>
@@ -121,7 +121,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
             )
           ),
 
-          renderScoreBoard(scores)
+          renderScoreBoard(scores, userId)
         )
 
       case RoundEnding =>
@@ -144,7 +144,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
             )
           ),
 
-          renderScoreBoard(scores)
+          renderScoreBoard(scores, userId)
         )
 
       case GameEnding =>
@@ -152,7 +152,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
           div(
             id := "end-game",
 
-            renderScoreBoard(scores, true, userId)
+            renderScoreBoard(scores, userId, true)
           )
         )
   end renderView
@@ -256,8 +256,8 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
   def renderScoreBoard(
     scores: Map[UserId, Int],
-    gameEnd: Boolean = false,
-    userId: UserId = ""
+    userId: UserId,
+    gameEnd: Boolean = false
   ) =
     val scoresSorted = scores.toList.sortBy(_._2).reverse
     val winner = scoresSorted.head._1
@@ -274,12 +274,22 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
       div(
         (for (player, score) <- scoresSorted yield div(
           cls := "scoreboard-item",
+
+          if player == userId then id := "current-user" else frag(),
+
           span(s"${player.capitalize}:"),
-          span(s"$score"), // BUG: scores are all zero for some reason
-          if gameEnd && player == winner then span("👑") else frag()
+
+          span(
+            cls := "text-right-aligned",
+            s"${if score > 0 then '+' else if score < 0 then '-' else ' '}${math.abs(score)}"
+          ), 
+
+          if gameEnd && player == winner 
+            then span(cls := "text-right-aligned", "👑") else frag()
         )).toVector,
 
-        if gameEnd then div(
+        // TODO: either fully implement these, or get rid of them
+        /* if gameEnd then div(
           cls := "scoreboard-item",
           id  := "end-game-buttons",
 
@@ -292,7 +302,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
             value := "Quit"
           )
         )
-        else frag()
+        else frag() */
       )
     )
   end renderScoreBoard
@@ -448,13 +458,22 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |
     | .scoreboard-item {
     |   margin-left: 1rem;
+    |   padding: .3rem;
     |   display: grid;
     |   align-items: center;
     |   grid-template-rows: 1fr;
     |   grid-template-columns: 3fr 2fr;
-    |   gap: 1rem;
     |   width: 50%;
     | }
+    |
+    | .text-right-aligned {
+    |   text-align: right;
+    | }
+    |
+    | .scoreboard-item#current-user {
+    |   border: 1px dashed #575757;
+    |   border-radius: 7px;
+    |}
     |
     | #end-game {
     |   color: black;
@@ -477,8 +496,8 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |   font-size: 1.3rem;
     | }
     |
-    | #end-game div > div {
-    |   margin-bottom: 1.3rem;
+    | #end-game .scoreboard-item {
+    |   margin-bottom: 1.1rem;
     | }
     |
     | #end-game span {
@@ -505,6 +524,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | input[type="button"] {
     |   cursor: pointer;
     | }
+    |
     """.stripMargin
 
   end css
