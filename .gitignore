@@ -45,3 +45,4 @@ bin/
 # generated js
 main.js
 main.js.map
+sbt-launch.jar
