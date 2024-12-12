@@ -10,7 +10,6 @@ class Logic extends StateMachine[Event, State, View]:
     id = "app64",
     name = "Wizard",
     description = "\"Basically gambling Jass\" - anonymous CS-214 assistant",
-    // TODO: change this and the preview image before handin
     year = 2024
   )
 

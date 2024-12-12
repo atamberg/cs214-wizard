@@ -197,7 +197,6 @@ case class State(
     copy(players = players.tail :+ players.head)
 
   def withPlayerNext(user: UserId): State =
-    // TODO: I think using mutability is usefull here, needs proper testing obviously
     require(
       players.contains(user),
       s"players = $players does not contain user = $user"
