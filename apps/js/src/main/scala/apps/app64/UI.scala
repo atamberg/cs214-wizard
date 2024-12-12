@@ -51,12 +51,12 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
                 if userId == players.head then
                   renderValidHand(hand)
-                else 
+                else
                   renderHand(hand.map(_._1))
               )
             }, false),
 
-            renderCards(trumpSuit, cardsPlayed)
+            renderCards(trumpSuit, cardsPlayed, players)
           ),
 
           renderScoreBoard(scores)
@@ -82,7 +82,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
               )
             },
 
-            renderCards(trumpSuit, cardsPlayed)
+            renderCards(trumpSuit, cardsPlayed, players)
           ),
 
           renderScoreBoard(scores)
@@ -100,7 +100,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
               )
             },
 
-            renderCards(trumpSuit, cardsPlayed)
+            renderCards(trumpSuit, cardsPlayed, players)
           ),
 
           renderScoreBoard(scores)
@@ -170,10 +170,10 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     for player <- players.sorted yield div(
       cls := "player",
 
-      if player == userId 
+      if player == userId
         then currUserView else frag(),
 
-      if handRender && player == userId 
+      if handRender && player == userId
         then renderHand(hand) else frag(),
 
       div(
@@ -202,20 +202,24 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
 
 
   def renderCards(
-    trumpSuit: Suit, 
-    cardsPlayed: Vector[(UserId, Card)]
+    trumpSuit: Suit,
+    cardsPlayed: Vector[(UserId, Card)],
+    players: Vector[UserId]
   ) =
-    // BUG: cards aren't rendered in correc order, if a player maykes a trick
-    //      who isn't the top left player in the grid
-    val cardsSorted: Vector[Card] =
-      cardsPlayed.sortBy(_._1).map(_._2)
+    def cardsMap: Map[UserId, Card] = cardsPlayed.toMap
+
     div(
       id := "cards",
       div (
         id := "card-grid",
-        for card <- cardsSorted yield div(
-          cls := "played-card", 
-          card.toString
+        for
+          player <- players.sorted
+          card =
+            if cardsMap.keySet(player)
+            then cardsMap(player).toString else ""
+        yield div(
+          cls := "played-card",
+          card
         ),
         div(id := "current-trump", trumpSuit.toString()),
       )
@@ -390,7 +394,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     | .player-image.current-player {
     |   background-color: #ff9777;
     | }
-    | 
+    |
     | .player-image.current-user {
     |   border: 2px dashed black;
     | }
@@ -466,7 +470,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     |
     | #end-game h1 {
     |   font-size: 3em;
-    |   margin: 2rem 0; 
+    |   margin: 2rem 0;
     | }
     |
     | #end-game h2 {
