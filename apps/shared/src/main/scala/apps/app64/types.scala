@@ -282,20 +282,21 @@ case class State(
   private def isValid(card: Card): Boolean =
     val highestCurrentSuit = cardsPlayed.map(_._2)
       .filter(_.suit == currentSuit)
-      .filterNot(_.isWizard)
+      .filterNot(c => c.isWizard || c.isJester)
       .map(_.value)
       .maxOption
 
     val highestCurrentTrump = cardsPlayed.map(_._2)
       .filter(_.suit == trumpSuit)
-      .filterNot(_.isWizard)
+      .filterNot(c => c.isWizard || c.isJester)
       .map(_.value)
       .maxOption
 
-    card.isWizard
-    || card.isJester
-    || (card.suit == currentSuit && card.value > highestCurrentSuit.getOrElse(0))
+    (card.suit == currentSuit && card.value > highestCurrentSuit.getOrElse(0))
     || (card.suit == trumpSuit && card.value > highestCurrentTrump.getOrElse(0))
+    || currentSuit == Suit.None
+    || card.isJester
+    || card.isWizard
   end isValid
 
   def getValidHand(userId: UserId): Set[(Card, Boolean)] = 
@@ -303,7 +304,7 @@ case class State(
         card <- hands(userId)
       yield
         (card, isValid(card)))
-    if !validCards.exists(_._2) || currentSuit == Suit.None then 
+    if !validCards.exists(_._2) then
       hands(userId).map((_, true))
     else validCards
   end getValidHand
