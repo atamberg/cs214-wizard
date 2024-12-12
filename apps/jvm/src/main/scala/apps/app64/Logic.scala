@@ -47,6 +47,7 @@ class Logic extends StateMachine[Event, State, View]:
       case Play =>
         event match
           case PlayCard(card) =>
+            require(state.getValidHand(userId).toMap.apply(card), s"card = $card is not valid!")
             // The event executes by adding a card for the current player to the trick
             // If there is no suit yet, change current suit to the suit of this card
             val playCardState = state.playCard(userId, card) // sets suit if needed
