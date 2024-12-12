@@ -279,6 +279,20 @@ case class State(
       phase = Phase.Bid
       ).withNewCards
 
+  def gameEnded: State = 
+    require(
+      this.phase == Phase.GameEnd,
+      s"phase = ${this.phase} is not GameEnd"
+    )
+
+    copy(
+      stakes = Map(),
+      scores = updateScores(),
+      cardsPlayed = Vector(),
+      hands = hands.map((u, h) => (u, h.empty)), 
+      currentSuit = Suit.None,
+    )
+
   private def isValid(card: Card): Boolean =
     val highestCurrentSuit = cardsPlayed.map(_._2)
       .filter(_.suit == currentSuit)
