@@ -113,18 +113,17 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
       case _              => "🂠"
 
   def scoreAgainst(others: Vector[Card], trump: Suit, current: Suit): Int =
-    if !others.exists(_.isWizard) && (this.suit == current && others.forall(c => 
-          c.suit != trump && (
+    val noWizardInPlay = !others.exists(_.isWizard)
+    val isCurrentSuit = this.suit == current
+    val isTrumpSuit = this.suit == trump
+    val beatsOthersNormal = others.forall(c => 
+          (c.suit != trump || c.value == 1) && (
           c.suit != this.suit  || 
-          c.value < this.value )
-          )
-    || this.suit == trump && others.forall(c => 
+          c.value < this.value ))
+    val beatsOthersTrump = this.suit == trump && others.forall(c => 
           c.suit != this.suit  || 
-          c.value < this.value))
-       then 
-       1
-    else 
-      0
+          c.value < this.value)
+    if  noWizardInPlay && (isCurrentSuit && beatsOthersNormal || isTrumpSuit && beatsOthersTrump) then 1 else 0
 
 type Hand = Set[Card]
 
@@ -217,11 +216,11 @@ case class State(
       (player, card) <- cardsPlayed
       otherCards = cardsPlayed.filter(_ != (player, card)).map(_._2)
     yield
-      if !(card.isWizard || card.isJester) then
-      player -> (
-        stakes(player).copy(
-          (stakes(player).tricksWon + card.scoreAgainst(otherCards, trumpSuit, currentSuit)),stakes(player).bid)
-      )
+      if !(card.isWizard || card.isJester) then {
+        player -> (
+          stakes(player).copy(
+            (stakes(player).tricksWon + card.scoreAgainst(otherCards, trumpSuit, currentSuit)),stakes(player).bid) 
+        )}
       else if card.isJester then
         player -> (
           stakes(player).copy(
