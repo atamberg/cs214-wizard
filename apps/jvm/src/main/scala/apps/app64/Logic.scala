@@ -15,11 +15,13 @@ class Logic extends StateMachine[Event, State, View]:
 
   override def wire = apps.app64.Wire
 
+
   override def init(clients: Seq[UserId]): State =
     import Suit.*
     import Phase.*
     require(clients.size >= 2 && clients.size <= 8, "Game requires 2-8 players!")
     State.defaultState(clients).withNewCards
+
 
   override def transition(state: State)(
     userId: UserId,
@@ -41,11 +43,15 @@ class Logic extends StateMachine[Event, State, View]:
                 Render(nextBidState.nextPlayer.nextPhase(Play))
               )
             else Seq(Render(nextBidState.nextPlayer))
+
           case _ => throw IllegalMoveException("You must bid during the bidding phase!")
+
+
       case Play =>
         event match
           case PlayCard(card) =>
             require(state.getValidHand(userId).toMap.apply(card), s"card = $card is not valid!")
+
             // The event executes by adding a card for the current player to the trick
             // If there is no suit yet, change current suit to the suit of this card
             val playCardState = state.playCard(userId, card) // sets suit if needed
@@ -61,19 +67,25 @@ class Logic extends StateMachine[Event, State, View]:
             lazy val maxRounds = math.min(WizardsConfig.MAX_ROUNDS, Deck.size / playCardState.players.size)
 
             if playCardState.cardsPlayed.size != playCardState.players.size then
-            //NOT all players have played a card
-              // next player's turn
+              //NOT all players have played a card
               playCardRender :+ Render(playCardState.nextPlayer)
+
             else if !playCardState.hands.forall(e => e._2.isEmpty) then
-            // NOT all cards in hand played
+              // NOT all cards in hand played
               playEndRender :+ Render(playEndState.nextPlay)
+
             else if playCardState.round < maxRounds then
-            // NOT maximum number of rounds reached
+              // NOT maximum number of rounds reached
               roundEndRender :+ Render(roundEndState.nextRound)
+
             else
               gameEndRender
+
           case _ => throw IllegalMoveException("You must play a card during the playing phase!")
+
+
       case RoundEnd | GameEnd | PlayEnd => throw IllegalMoveException("You can only make a move during a round!")
+
 
   override def project(state: State)(userId: UserId): View =
     import Phase.*
@@ -98,6 +110,7 @@ class Logic extends StateMachine[Event, State, View]:
             scoreView = state.scores,
             stateView = stateView
           )
+
         // others must wait
         else
           View(
@@ -106,15 +119,16 @@ class Logic extends StateMachine[Event, State, View]:
             stateView = stateView
           )
 
+
       case Play =>
-        // user distinction is handled in frontend, come at me
-        if state.players.head == userId 
-          && !state.cardsPlayed.map(_._1).contains(userId) then
+        // current player gets card selecting view if they haven't played yet
+        if state.players.head == userId && !state.cardsPlayed.map(_._1).contains(userId) then
           View(
             phaseView = CardSelecting(state.getValidHand(userId)),
             scoreView = state.scores,
             stateView = stateView
           )
+
         // others must wait
         else
           View(
@@ -123,21 +137,24 @@ class Logic extends StateMachine[Event, State, View]:
             stateView = stateView
           )
 
-      case RoundEnd => 
+
+      case RoundEnd =>
           View(
             phaseView = RoundEnding,
             scoreView = state.scores,
             stateView = stateView
           )
 
-      case GameEnd  => 
+
+      case GameEnd  =>
           View(
             phaseView = GameEnding,
             scoreView = state.scores,
             stateView = stateView
           )
 
-      case PlayEnd  => 
+
+      case PlayEnd  =>
           View(
             phaseView = PlayEnding(
               state.hands(userId), state.trickWinner

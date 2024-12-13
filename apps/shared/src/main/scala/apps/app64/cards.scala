@@ -22,6 +22,7 @@ object Deck:
       size/players.size >= n,
       s"orderedDeck.size / players.size < n"
     )
+
     var mutCards = shuffle(orderedDeck)
     players.map(_ -> {
       val hand = mutCards.take(n).toSet
@@ -29,10 +30,12 @@ object Deck:
       hand
     }).toMap
 
+
 /** Suit describes the "color" of a card */
 enum Suit derives ReadWriter:
   case Hearts, Diamonds, Clubs, Spades, None;
-  override def toString(): String = 
+
+  override def toString(): String =
     this match
       case Hearts =>   "♥️"
       case Diamonds => "♦️"
@@ -43,8 +46,10 @@ enum Suit derives ReadWriter:
 object Suit:
   /** An array of all suits without None */
   val allSuits: Array[Suit] = Suit.values.filterNot(_==Suit.None)
+
   /** Returns a randomly selected suit (without None) */
   def random = allSuits(between(0, allSuits.size))
+
 
 /**
   * The Card class describes a standard playing card (and wizards as well as jesters)
@@ -56,8 +61,10 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
   import Suit.*
   /** Indicates whether the card is a wizard or not */
   val isWizard = value == 15
+
   /** Indicates whether the card is a jester or not */
   val isJester = value == 1
+
   /**
     * A toString override to match cards to emojis
     * Jester = 1, 2-10 = 2-10,  Jack = 11, Queen = 12, King = 13, Ace = 14, Wizard = 15
@@ -123,6 +130,7 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
       case (Spades, 14)   => "🂡"
 
       case _              => "🂠"
+
   /**
     * A method to determine whether a card wins agains some other cards
     * !!! This method does not include logic to resolve tricks that contain multiple wizards or only jesters !!!
@@ -136,12 +144,15 @@ case class Card(suit: Suit, value: Int) derives ReadWriter:
     val noWizardInPlay = !others.exists(_.isWizard)
     val isCurrentSuit = this.suit == current
     val isTrumpSuit = this.suit == trump
-    val beatsOthersNormal = others.forall(c => 
+
+    val beatsOthersNormal = others.forall(c =>
           (c.suit != trump || c.value == 1) && (
-          c.suit != this.suit  || 
+          c.suit != this.suit  ||
           c.value < this.value ))
-    val beatsOthersTrump = this.suit == trump && others.forall(c => 
-          c.suit != this.suit  || 
+
+    val beatsOthersTrump = this.suit == trump && others.forall(c =>
+          c.suit != this.suit  ||
           c.value < this.value)
+
     // This formulates the basic rule set for which card beats which
     if  noWizardInPlay && (isCurrentSuit && beatsOthersNormal || isTrumpSuit && beatsOthersTrump) then 1 else 0

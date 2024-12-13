@@ -8,6 +8,7 @@ import upickle.default.*
   */
 type Hand = Set[Card]
 
+
 /**
   * Phase is an enum which contains types of phases
   * which are used to signal the state:
@@ -17,15 +18,16 @@ type Hand = Set[Card]
     - RoundEnd: display details regarding the round ending
     - GameEnd:  display details regarding the game  ending
   */
-
 enum Phase:
   case Bid, Play, PlayEnd, RoundEnd, GameEnd
+
+
 /**
   * Event is an enum which describes possible
   * events the user can send to the state, which
   * in turn sends back actions.
-  * Deriving ReadWriter from upickle allows enums to easily 
-  * integrate with the upickle library. In other words, 
+  * Deriving ReadWriter from upickle allows enums to easily
+  * integrate with the upickle library. In other words,
   * deriving contextually describes upickle and the enum,
   * allowing upickles's readers and writers to operate.
   */
@@ -45,6 +47,7 @@ enum Event derives ReadWriter:
     */
   case PlayCard(card: Card)
 
+
 /**
   * Represents the overall view of the state as presented to a user.
   *
@@ -58,10 +61,11 @@ case class View (
   stateView: StateView
 ) derives ReadWriter
 
+
 /**
-  * Represents the state of the game, including player-specific 
-  * details and the current round status. This proves useful in 
-  * the frontend as it packages useful data in a safe manner 
+  * Represents the state of the game, including player-specific
+  * details and the current round status. This proves useful in
+  * the frontend as it packages useful data in a safe manner
   * (no user hands or incriminating data)
   *
   * @param players     A vector of users representing the players in the game.
@@ -82,16 +86,17 @@ case class StateView(
   trickWinner: UserId
 ) derives ReadWriter
 
+
 /**
-  * Enumerates the possible phases of the game, capturing the 
+  * Enumerates the possible phases of the game, capturing the
   * actions and states available in each phase.
   */
 enum PhaseView derives ReadWriter:
 /**
-    * The phase where players select cards, 
+    * The phase where players select cards,
     * indicating valid cards and whether they can be played.
     *
-    * @param validHand A set of tuples where each tuple contains 
+    * @param validHand A set of tuples where each tuple contains
     *                  a Card and a boolean indicating its validity.
     */
   case CardSelecting(validHand: Set[(Card, Boolean)])
