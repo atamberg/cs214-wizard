@@ -309,7 +309,7 @@ class GameStateTest extends AnyFlatSpec with Matchers:
     val validHand = state.getValidHand(UID0)
     
     validHand shouldBe Set(
-      (heartTwo, false),     // lower than played card
+      (heartTwo, true),     // can be played because no other card in the hand has the current suit and is valid
       (wizardCard, true),    // wizard always valid
       (jesterCard, true)     // jester always valid
     )
