@@ -1,4 +1,4 @@
 package apps.app64
 
-object WizardsConfig:
+object WizardConfig:
   val MAX_ROUNDS = 10

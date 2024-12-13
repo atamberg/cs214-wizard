@@ -64,7 +64,7 @@ class Logic extends StateMachine[Event, State, View]:
             lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(3000))
             lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState.gameEnded), Pause(60000))
 
-            lazy val maxRounds = math.min(WizardsConfig.MAX_ROUNDS, Deck.size / playCardState.players.size)
+            lazy val maxRounds = math.min(WizardConfig.MAX_ROUNDS, Deck.size / playCardState.players.size)
 
             if playCardState.cardsPlayed.size != playCardState.players.size then
               //NOT all players have played a card
