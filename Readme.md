@@ -9,13 +9,13 @@ First of all, start the server as usual:
 Then, in your browser, navigate to `localhost:8080` and click on *Wizard*, then follow the onscreen instructions to create a game.
 
 ### Gameplay
-Once in the game, players first take turns announcing how many **tricks** they think they will take during the round, which we refer to as **bids**.  
+Once in the game, players first take turns announcing how many **tricks** they think they will win with their current hand, which we refer to as **bids**.  
 
-A player takes a trick by playing the having the highest valid card in that play. A card is valid if it is of the current trump suit (displayed in the middle of the cards) or if it is of the same suit as the first card in that play.  
-There are two special cards, the jester (🃏, always the lowest card) and the wizard (🧙, always the highest card) which can be played at any time.  
+A player wins a trick by having playing the the highest valid card in that play. A card is valid if it is of the current trump suit (displayed in the middle of the cards), if it is of the same suit as the first card in that play or it is a special card.
+There are two special cards, the jester (🃏, always the lowest card) and the wizard (🧙, always the highest card) which can be played no matter which other cards have been played.  
 
-After having announced the bids, the players start playing cards one after another. This is referred to as a **play**.  
-A play ends when every player has played one card, after which the winner of that play's trick is determined and announced. That player is also the player that starts the next play.  
+After having announced the bids, the players start playing cards one after another. This is referred to as a **play**.
+A play ends when every player has played one card, after which the winner of that play's trick is determined and announced. That player is also the player that starts the next play.
 A **round** ends once all players have no more cards, after which the score changes for that round are displayed. Every round, the number of cards increases by 1 until `60 / <number of players>` is reached.
 
 The goal of each player is to make *as many tricks as they announced bids* per round. Doing so will result in *gaining 20 points plus 10 points per trick*. Failing to reach the bids, or overshooting them, results in *losing 10 points per trick over / under the bids*.
