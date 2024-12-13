@@ -11,12 +11,10 @@ object Deck:
       suit <- Suit.allSuits
       value <- (1 to 15)
     yield Card(suit, value)
-  }.toSet
+  }.toList
 
   /** The amount of cards in the deck */
   lazy val size = orderedDeck.size
-  
-  private def shuffledCards: Set[Card] = shuffle(orderedDeck)
 
   /** This method returns a map where each player is associated to a hand of n randomly selected cards */
   def dealNCards(n: Int, players: Vector[UserId]): Map[UserId, Hand] =
@@ -24,12 +22,13 @@ object Deck:
       size/players.size >= n,
       s"orderedDeck.size / players.size < n"
     )
-    var mutCards = shuffledCards
+    var mutCards = shuffle(orderedDeck)
     players.map(_ -> {
       val hand = mutCards.take(n).toSet
       mutCards = mutCards.drop(n)
       hand
     }).toMap
+
 /** Suit describes the "color" of a card */
 enum Suit derives ReadWriter:
   case Hearts, Diamonds, Clubs, Spades, None;
