@@ -27,7 +27,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   override def render(userId: UserId, view: View): Frag =
     frag(
       link(
-        rel := "stylesheet", 
+        rel := "stylesheet",
         href := "/static/style.css"
       ),
       h2("Wizard - It's basically gambling Jass"),
@@ -49,6 +49,14 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
       renderView(userId, view)
     )
 
+
+  /**
+    * Method which renders a given view
+    *
+    * @param userId The current user
+    * @param view   The view to render
+    * @return       A frag node containing the HTML tags of the UI
+    */
   def renderView(userId: UserId, view: View): Frag =
     import PhaseView.*
     val scores = view.scoreView
@@ -176,6 +184,19 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   end renderView
 
 
+  /**
+    * Method to render the players in the player grid, accepting an element
+    * to render for the current user
+    *
+    * @param userId       The current user
+    * @param players      The players of the game
+    * @param stakes       The current stakes at hand of all players
+    * @param hand         The hand of the current player
+    * @param currUserView The additional element to render for the current user
+    * @param handRender   Flag to specifiy whether to render the hand of the player
+    *                     or not, defaults to true.
+    * @return             A frag node containing the HTML tags for this UI
+    */
   def renderPlayers[T <: dom.Element](
     userId:  UserId,
     players: Vector[UserId],
@@ -219,6 +240,14 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   end renderPlayers
 
 
+  /**
+    * Method to render the played cars in the middle of the players
+    *
+    * @param trumpSuit   The current trump suit
+    * @param cardsPlayed The cards that have been played thus far
+    * @param players     The players of the game
+    * @return            A frag node containing the HTML tags for this UI
+    */
   def renderCards(
     trumpSuit: Suit,
     cardsPlayed: Vector[(UserId, Card)],
@@ -245,6 +274,13 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   end renderCards
 
 
+  /**
+    * Method to render the hand of the current player during the
+    * waiting phase specifically.
+    *
+    * @param hand The hand of the current player
+    * @return     A frag node containing the HTML tags for this UI
+    */
   def renderHand(hand: Hand) =
     div(
       id := "player-hand",
@@ -258,6 +294,13 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   end renderHand
 
 
+  /**
+    * Method to render the hand of the current player during the
+    * card selecting phase specifically.
+    *
+    * @param validHand The valid hand of the current player
+    * @return          A frag node containing the HTML tags for this UI
+    */
   def renderValidHand(validHand: Set[(Card, Boolean)]) =
     div(
       id := "player-hand",
@@ -273,6 +316,15 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
     )
 
 
+  /**
+    * Method to render the scoreboard
+    *
+    * @param scores  The current scores of all players
+    * @param userId  The current user
+    * @param gameEnd Flag to specify whether it is the end of the game and
+    *                thus if the crowns should be rendered. Default: false
+    * @return        A frag node containing the HTML tags for this UI
+    */
   def renderScoreBoard(
     scores: Map[UserId, Int],
     userId: UserId,
@@ -303,7 +355,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
             s"${if score > 0 then '+' else if score < 0 then '-' else ' '}${math.abs(score)}"
           ),
 
-          if gameEnd && player == winner 
+          if gameEnd && player == winner
             then span(cls := "text-right-aligned", "👑") else frag()
         )).toVector,
       )
