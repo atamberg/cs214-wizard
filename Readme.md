@@ -11,7 +11,7 @@ Then, in your browser, navigate to `localhost:8080` and click on *Wizard*, then 
 ### Gameplay
 Once in the game, players first take turns announcing how many **tricks** they think they will win with their current hand, which we refer to as **bids**.  
 
-A player wins a trick by having playing the the highest valid card in that play. A card is valid if it is of the current trump suit (displayed in the middle of the cards), if it is of the same suit as the first card in that play or it is a special card.
+A player wins a trick by having played the the highest valid card in that play. A card is valid if it is of the current trump suit (displayed in the middle of the cards), if it is of the same suit as the first card in that play or it is a special card.
 There are two special cards, the jester (🃏, always the lowest card) and the wizard (🧙, always the highest card) which can be played no matter which other cards have been played.  
 
 After having announced the bids, the players start playing cards one after another. This is referred to as a **play**.
