@@ -13,13 +13,13 @@ object Wire extends AppWire[Event, View]:
 
   override object eventFormat extends WireFormat[Event]:
     override def encode(event: Event): ujson.Value =
-      read(default.write(event)) // Weird hacky "read" because it would wrap the json in another string ?
+      read(default.write(event))
     override def decode(json: ujson.Value): Try[Event] = Try:
       default.read(json)
 
   override object viewFormat extends WireFormat[View]:
     override def encode(view: View): Value = 
-      read(default.write(view))// Weird hacky "read" because it would wrap the json in another string ?
+      read(default.write(view))
     override def decode(json: Value): Try[View] = Try:
       default.read(json)
 
