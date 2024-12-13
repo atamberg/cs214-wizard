@@ -1,0 +1,247 @@
+.h2 {
+  padding: 1rem;
+  font-size: 1.3rem;
+}
+
+body {
+  background-color: #f0f0f0;
+  max-width: 80%
+}
+
+* {
+  font-family: monospace;
+}
+
+span, div {
+  font-size: .8rem;
+}
+
+#players-grid {
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin: 1rem 0;
+  padding: .8rem;
+  border: 1px dashed #8a8a8a;
+  border-radius: 7px;
+}
+
+.player, #cards {
+  display: grid;
+  text-align: center;
+  grid-template-columns: 1fr;
+}
+
+.player {
+  grid-template-rows: auto repeat(3, 1fr);
+  margin: .5rem 1rem;
+}
+
+#bid-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: .3rem
+}
+
+.bid-number {
+  padding: .3rem .5rem;
+  background-color: #ffffff;
+  border-radius: 100%;
+  border: 1px solid black;
+  margin: 0rem .2rem;
+  cursor: pointer;
+}
+
+#player-hand {
+  grid-row: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-flow: wrap;
+}
+
+.valid-card, .invalid-card {
+  font-size: 2rem;
+  margin: .4rem;
+  padding-bottom: .4rem;
+}
+
+.valid-card {
+  border-bottom: 2px solid #ecae03;
+  cursor: pointer;
+}
+
+.invalid-card {
+  opacity: .4;
+  border-bottom: 2px solid #8f8f8f;
+}
+
+#wait-for-others {
+  font-style: italic;
+  text-wrap: balance;
+}
+
+.player-image {
+  grid-row: 3;
+  align-content: center;
+  margin: .7rem 2rem;
+  background-color: #80d4ff;
+  border-radius: 7px;
+  font-size: 1.3rem;
+}
+
+.player-image.current-player {
+  background-color: #ff9777;
+}
+
+.player-image.current-user {
+  border: 2px dashed black;
+}
+
+.player-info {
+  grid-row: 4;
+}
+
+#cards {
+  grid-row: 2;
+  grid-column: 2;
+
+  display: block;
+  border: 1px dashed black;
+  border-radius: 7px;
+  text-align: center;
+  padding: 1rem .7rem;
+  align-content: center;
+}
+
+.play-end, .round-end, .round-end div {
+  background-color: #ffb726;
+  font-size: 1.1rem;
+}
+
+#card-grid {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+
+  gap: .8rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+#current-trump {
+  grid-column: 2;
+  grid-row: 2;
+
+  font-size: 2rem;
+  opacity: .5;
+}
+
+.played-card {
+  font-size: 2rem;
+}
+
+#scoreboard h2 {
+  border-bottom: 2px black solid;
+}
+
+.scoreboard-item {
+  margin-left: 1rem;
+  padding: .3rem;
+  display: grid;
+  align-items: center;
+  grid-template-rows: 1fr;
+  grid-template-columns: 3fr 2fr;
+  width: 50%;
+}
+
+.text-right-aligned {
+  text-align: right;
+}
+
+.scoreboard-item#current-user {
+  border: 1px dashed #575757;
+  border-radius: 7px;
+}
+
+#end-game {
+  color: black;
+  background-color: #f0f0f0;
+
+  border-radius: 7px;
+}
+
+#end-game .scoreboard-item {
+  grid-template-columns: 3fr 2fr 1fr;
+  width: 60%;
+}
+
+#end-game h1 {
+  font-size: 3em;
+  margin: 2rem 0;
+}
+
+#end-game h2 {
+  font-size: 1.3rem;
+}
+
+#end-game .scoreboard-item {
+  margin-bottom: 1.1rem;
+}
+
+#end-game span {
+  font-size: .9rem;
+}
+
+#crown {
+  font-size: 2rem !important;
+}
+
+#end-game-buttons {
+  margin-top: 2rem;
+}
+
+#end-game-buttons input[type="button"] {
+  max-width: 70%;
+  margin: 2rem 0;
+  padding: .5rem 1rem;
+
+  border: 1px solid black;
+  border-radius: 7px;
+}
+
+input[type="button"] {
+  cursor: pointer;
+}
+
+#legend {
+  display: flex;
+  align-items: center;
+}
+
+#legend > div{
+  display: flex;
+  margin-right: 2.5rem;
+}
+
+.swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 4px;
+  margin-right: .2rem
+}
+
+#current-swatch > .swatch {
+  background-color: #ff9777;
+}
+
+#you-swatch > .swatch {
+  border: 1px dashed black;
+}
+
+#other-swatch > .swatch {
+  background-color: #80d4ff;
+}
