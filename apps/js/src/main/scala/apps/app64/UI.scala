@@ -30,7 +30,7 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
         rel := "stylesheet", 
         href := "/static/style.css"
       ),
-      h2("Wizards - It's basically gambling Jass"),
+      h2("Wizard - It's basically gambling Jass"),
       div(
         id := "legend",
         div(
