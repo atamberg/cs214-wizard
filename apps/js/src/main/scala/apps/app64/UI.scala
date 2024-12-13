@@ -244,11 +244,13 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
   def renderHand(hand: Hand) =
     div(
       id := "player-hand",
-      (for card <- hand yield div(
+      (for (card, index) <- hand.zipWithIndex yield div(
         cls := "invalid-card",
+        // Use attr method for custom attributes
+        attr("data-key") := s"card-${card.toString}-${index}",
         card.toString
       )).toVector
-    )
+  )
   end renderHand
 
 
@@ -257,7 +259,6 @@ class Instance(userId: UserId, sendMessage: ujson.Value => Unit, target: dom.Ele
       id := "player-hand",
       (for (card, valid) <- validHand yield div(
         cls := (if valid then "valid-card" else "invalid-card"),
-
         if valid then
           onclick := {() => sendEvent(Event.PlayCard(card))}
         else
