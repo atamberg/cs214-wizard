@@ -60,7 +60,7 @@ class Logic extends StateMachine[Event, State, View]:
             lazy val gameEndState = roundEndState.nextPhase(GameEnd)
 
             lazy val playCardRender = Seq(Render(playCardState), Pause(200))
-            lazy val playEndRender = playCardRender ++ Seq(Render(playEndState), Pause(1500))
+            lazy val playEndRender = playCardRender ++ Seq(Pause(800), Render(playEndState), Pause(1500))
             lazy val roundEndRender = playEndRender ++ Seq(Render(roundEndState), Pause(3000))
             lazy val gameEndRender = roundEndRender ++ Seq(Render(gameEndState.gameEnded), Pause(60000))
 
